@@ -1,0 +1,55 @@
+const mongoose = require('mongoose');
+
+
+mongoose.connect('mongodb://localhost/your_database_name', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
+
+const userSchema = new mongoose.Schema({
+  username: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  friends:   
+ [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  groups: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Group'   
+ }],
+});
+
+const User = mongoose.model('User', userSchema);
+
+
+const groupSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  members: [{
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User'   
+ },
+    role: { type: String,   
+ enum: ['admin', 'member'], default: 'member' },
+  }],
+  messages: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Message' }],
+});
+
+const Group = mongoose.model('Group', groupSchema);
+
+
+const messageSchema = new mongoose.Schema({
+  sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  text: String,
+  timestamp: { type: Date, default: Date.now },
+  group: { type: mongoose.Schema.Types.ObjectId, ref: 'Group' },
+  receiver: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+});
+
+const Message = mongoose.model('Message', messageSchema);
+
+
+const notificationSchema = new mongoose.Schema({
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  message: String,
+  read: { type: Boolean,   
+ default: false },
+  timestamp: { type: Date, default: Date.now },
+});
+
+const Notification = mongoose.model('Notification', notificationSchema);
