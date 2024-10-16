@@ -7,9 +7,9 @@ require('dotenv').config();
 
 app.use(express.json());
 app.use(cors());
-app.use("/api/users", userRoute);
+app.use('/api/users', userRoute);
 
-const port = process.env.PORT || 8888;
+const port = process.env.PORT || 5173;
 const uri = process.env.ATLAS_URI;
 
 app.get("/", (req, res) => {
