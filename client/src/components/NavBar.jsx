@@ -16,6 +16,9 @@ const NavBar = () => {
                         <Link to="/login" className="link-light text-decoration-none">
                             Login
                         </Link>
+                        <Link to="/Register" className="link-light text-decoration-none">
+                            Register
+                        </Link>
                     </Stack>
                 </Nav>
             </Container>

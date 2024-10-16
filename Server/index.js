@@ -9,7 +9,7 @@ app.use(express.json());
 app.use(cors());
 app.use('/api/users', userRoute);
 
-const port = process.env.PORT || 5173;
+const port = process.env.PORT || 5000;
 const uri = process.env.ATLAS_URI;
 
 app.get("/", (req, res) => {

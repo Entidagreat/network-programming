@@ -1,6 +1,6 @@
-export const baseUrl = "http://localhost:5173/api";
-export const postRequest = async (url, body) => {
+export const baseUrl = "http://localhost:5000/api";
 
+export const postRequest = async (url, body) => {
     const response = await fetch(url, {
         method: "POST",
         headers: {
@@ -21,5 +21,4 @@ export const postRequest = async (url, body) => {
         return { error: true, message };
     }
     return data;
-
 };

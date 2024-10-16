@@ -7,9 +7,7 @@ export const AuthContextProvider = ({ children }) => {
     const [registerError, setRegisterError] = useState(null);
     const [isRegisterLoading, setIsRegisterLoading] = useState(false);
     const [registerInfo, setRegisterInfo] = useState({
-        name: "",
-        email: "",
-        password: "",
+
     });
 
 
