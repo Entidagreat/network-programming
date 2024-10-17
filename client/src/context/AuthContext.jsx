@@ -14,14 +14,26 @@ export const AuthContextProvider = ({ children }) => {
         email: "",
         password: "",
     });
+    const [loginError, setLoginError] = useState(null);
+    const [isLoginLoading, setIsLoginLoading] = useState(false);
+    const [loginInfo, setLoginInfo] = useState({
+        email: "",
+        password: "",
+    });
     console.log("Userr ", user);
-
+    console.log("loginInfo ", loginInfo);
+    useEffect(() => {
+        console.log("loginInfo ", loginInfo);
+    }, [loginInfo]);
     useEffect(() => {
         const user = localStorage.getItem("User");
 
         setUser(JSON.parse(user));
     }, []);
 
+    const updateLoginInfo = useCallback((info) => {
+        setLoginInfo(info);
+    }, []);
     const updateRegisterInfo = useCallback((info) => {
         setRegisterInfo(info);
     }, []);
@@ -47,6 +59,22 @@ export const AuthContextProvider = ({ children }) => {
         setUser(response);
     }, [registerInfo]);
 
+    const loginUser = useCallback(async (e) => {
+        e.preventDefault();
+        setIsLoginLoading(true);
+        setLoginError(null);
+        const response = await postRequest(
+            `${baseUrl}/users/login`,
+            JSON.stringify(loginInfo)
+        );
+        setIsLoginLoading(false);
+        if (response.error) {
+            return setLoginError(response);
+        }
+        localStorage.setItem("User", JSON.stringify(response));
+        setUser(response);
+    }, [loginInfo]);
+
     const logoutUser = useCallback(() => {
         localStorage.removeItem("User");
         setUser(null);
@@ -62,6 +90,11 @@ export const AuthContextProvider = ({ children }) => {
                 registerError,
                 isRegisterLoading,
                 logoutUser,
+                loginUser,
+                loginInfo,
+                loginError,
+                updateLoginInfo,
+                isLoginLoading,
             }}
         >
             {children}
