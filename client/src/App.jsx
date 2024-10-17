@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom"
 import Login from "./pages/Login";
-import Chat from "./pages/chat";
+import Chat from "./pages/Chat";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Container } from "react-bootstrap";
 import NavBar from "./components/NavBar";
