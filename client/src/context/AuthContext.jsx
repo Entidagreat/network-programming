@@ -75,6 +75,8 @@ export const AuthContextProvider = ({ children }) => {
         setUser(response);
     }, [loginInfo]);
 
+   
+
     const logoutUser = useCallback(() => {
         localStorage.removeItem("User");
         setUser(null);
