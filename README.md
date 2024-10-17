@@ -1,5 +1,5 @@
 # network-programming
-npm create vite@latest
+# bat 2 terminal:cd server->node index.js(terminal cd server)
 
 
 # note cua nt:
