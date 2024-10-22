@@ -8,7 +8,7 @@ let onlineUsers = [];
 io.on("connection", (socket) => {
     console.log("new connection", socket.id);
 
-    // listen to a connecction 
+    // listen to a connection 
     socket.on("addNewUser", (userId) => {
         !onlineUsers.some(user => user.userId === userId) &&
             onlineUsers.push({
@@ -25,8 +25,13 @@ io.on("connection", (socket) => {
 
         if (user) {
             io.to(user.socketId).emit("getMessage", message);
+            io.to(user.socketId).emit("getNotification",{
+                senderId: message.senderId,
+                isRead: false,
+                date: new Date(),
+            });
         }
-    })
+    });
 
     socket.on("disconnect", () => {
         onlineUsers = onlineUsers.filter(user => user.socketId !== socket.id);
