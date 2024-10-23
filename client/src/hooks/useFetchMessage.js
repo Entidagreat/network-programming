@@ -16,7 +16,7 @@ export const useFetchLatestMessage = (chat) => {
 
             const latestMessage = response[response?.length - 1];
             
-            setLatestMessage(lastMessage);
+            setLatestMessage(latestMessage);
         };
         getMessages();
     }, [newMessage, notifications]);
