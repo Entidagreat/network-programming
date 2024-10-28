@@ -90,8 +90,10 @@ body{
   padding: 0.75rem;
   border-radius: 5px;
   max-width: 50%;
+  text-align: left;
+  text-align: justify;
 }
-
+/* thanh ten */
 .message.self {
   color: white;
   background: #00bd9b;
@@ -101,6 +103,8 @@ body{
   font-size: 12px;
   align-self: flex-end;
   font-weight: 400;
+  margin-left: 5px;
+  text-align: left;
 }
 
 /* Chat Input  */
@@ -207,4 +211,20 @@ body{
   border-radius: 50%;
   align-items: center;
   justify-content: center;
+}
+
+/* new */
+.translate-btn{
+  color: white;
+  background-color: #282828;
+  /* border-radius: 1px; */
+}
+.translated-text{
+  display:block;
+  margin-top: 1.5px;
+  color: white;
+}
+
+.hr{
+  border-top: white 2px solid;
 }
