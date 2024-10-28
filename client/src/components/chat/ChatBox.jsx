@@ -14,6 +14,7 @@ const ChatBox = () => {
   const { recipientUser } = useFetchRecipientUser(currentChat, user);
   const [textMessage, setTextMessage] = useState("");
   const [translations, setTranslations] = useState({}); 
+  const [hoveredMessageId, setHoveredMessageId] = useState(null); // Thay đổi trạng thái để theo dõi ID tin nhắn
   const scroll = useRef();
 
   // Xóa bản dịch khi chuyển đổi cuộc hội thoại
@@ -31,7 +32,6 @@ const ChatBox = () => {
     }
   };
 
-  // Trong hàm handleTranslate:
   const handleTranslate = async (message) => {
       try {
           const translatedText = await translateText(message.text, 'en'); 
@@ -41,7 +41,6 @@ const ChatBox = () => {
           console.error("Error translating message:", error);
       }
   };
-  
 
   if (!user) {
     return <p style={{ textAlign: "center", width: "100%" }}>Loading user...</p>;
@@ -77,22 +76,42 @@ const ChatBox = () => {
               ref={scroll}
               direction="horizontal"
               gap={2}
+              onMouseEnter={() => setHoveredMessageId(message._id)} // Thiết lập ID tin nhắn khi hover
+              onMouseLeave={() => setHoveredMessageId(null)} // Thiết lập lại ID khi không hover
             >
-              <div className="message-content">
+              <div className="message-content" style={{ position: 'relative', flexGrow: 1 }}>
                 <span>{message.text}</span>
                 {translations[message._id] && (
                   <>
-                  <hr style={{ margin: "8px 0",border:"2px solid #ccc" }} />
-                  <span className="translated-text">{translations[message._id]}</span>
+                    <hr style={{ margin: "8px 0", border: "2px solid #ccc" }} />
+                    <span className="translated-text">{translations[message._id]}</span>
                   </>
                 )}
-                <span className="message-footer">
-                  {moment(message.createdAt).calendar()}
-                </span>
+             {/* Hiển thị thời gian chỉ cho tin nhắn đang hover */}
+{hoveredMessageId === message._id && (
+  <span
+    className="message-footer"
+    style={{
+      position: 'absolute',
+      bottom: '-32px',
+      right: message.senderId === user?._id ? '0' : 'auto', // Căn phải nếu là tin nhắn của bạn
+      left: message.senderId !== user?._id ? '0' : 'auto', // Căn trái nếu là tin nhắn của người khác
+      textAlign: message.senderId === user?._id ? 'right' : 'left', // Canh phải hoặc trái
+    }}
+  >
+    {moment(message.createdAt).calendar()}
+  </span>
+)}
+
               </div>
 
+              {/* Nút dịch nằm bên phải khối tin nhắn */}
               {message.senderId !== user?._id && (
-                <button className="translate-btn" onClick={() => handleTranslate(message)}>
+                <button 
+                  className="translate-btn" 
+                  onClick={() => handleTranslate(message)} 
+                  style={{ marginLeft: '10px' }} // Đảm bảo nút dịch nằm bên phải
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="16"

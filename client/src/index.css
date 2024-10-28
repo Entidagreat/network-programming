@@ -103,9 +103,14 @@ body{
   font-size: 12px;
   align-self: flex-end;
   font-weight: 400;
-  margin-left: 5px;
-  text-align: left;
+  position: absolute; /* Thêm thuộc tính này để đảm bảo vị trí tuyệt đối */
+  right: 0; /* Căn phải */
+  bottom: -32px; /* Khoảng cách so với đáy của message-content */
+  text-align: right; /* Căn phải cho nội dung bên trong */
+  margin-top: 15px;
+  min-width: 150px;
 }
+
 
 /* Chat Input  */
 .chat-input {
@@ -223,8 +228,9 @@ body{
   display:block;
   margin-top: 1.5px;
   color: white;
+  opacity: 1;
 }
 
 .hr{
-  border-top: white 2px solid;
+  border-top: white 5px solid;
 }
