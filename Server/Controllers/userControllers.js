@@ -1,6 +1,7 @@
 const userModel = require("../Models/userModel");
 const jwt = require("jsonwebtoken");
 const validator = require("validator");
+const bcrypt = require("bcrypt"); 
 
 // Hàm tạo token
 const createToken = (_id) => {
@@ -21,7 +22,11 @@ const registerUser = async (req, res) => {
         };
         if (!validator.isEmail(email)) return res.status(400).json("email khong kha dung");
         if (!validator.isStrongPassword(password)) return res.status(400).json("mat khau ngan qua!");
-        user = new userModel({ name, email, password, role, friends, groups });
+
+        // Hash the password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        user = new userModel({ name, email, password: hashedPassword, role, friends, groups });
         await user.save();
         const token = createToken(user._id);
         res.status(200).json({ _id: user._id, name, email, role, token });
@@ -34,22 +39,31 @@ const loginUser = async (req, res) => {
     const { email, password } = req.body;
 
     try {
-        let user = await userModel.findOne({ email });
-        if (!user) return res.status(400).json("email khong dung");
-        if (password !== user.password) {
-            return res.status(400).json("mat khau khong dung");
+        if (!email) {
+            return res.status(400).json("Email chưa được nhập");
         }
+        if (!password) {
+            return res.status(400).json("Mật khẩu chưa được nhập");
+        }
+        let user = await userModel.findOne({ email });
+        if (!user) return res.status(400).json("email hoặc mật khẩu không đúng");
         const token = createToken(user._id);
         res.status(200).json({ _id: user._id, name: user.name, email, token });
     } catch (error) {
         console.log(error);
-        res.status(500).json("server error");
+        res.status(500).json("lỗi server");
     }
 };
 const findUser = async (req, res) => {
     const userId = req.params.userId;
     try {
         const user = await userModel.findById(userId);
+
+        if (!user) {
+            // Trả về lỗi 404 nếu không tìm thấy user
+            return res.status(404).json({ error: "Không tìm thấy người dùng" }); 
+        }
+
         res.status(200).json(user);
     } catch (error) {
         console.log(error);
