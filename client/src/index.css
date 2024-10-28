@@ -219,10 +219,14 @@ body{
 }
 
 /* new */
-.translate-btn{
-  color: white;
-  background-color: #282828;
-  /* border-radius: 1px; */
+.translate-btn {
+  color: white; /* Màu chữ là trắng */
+  background-color: transparent; /* Nền trong suốt */
+  border: none; /* Bỏ viền */
+  outline: none; /* Bỏ viền ngoài khi nhấn */
+  padding: 0; /* Bỏ khoảng cách bên trong nếu có */
+  cursor: pointer; /* Đổi con trỏ khi hover qua nút */
+  font-size: inherit; /* Kế thừa kích thước chữ từ phần tử cha */
 }
 .translated-text{
   display:block;

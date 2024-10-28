@@ -64,69 +64,72 @@ const ChatBox = () => {
         <strong>{recipientUser?.name}</strong>
       </div>
       <Stack gap={3} className="messages">
-        {messages &&
-          messages.map((message, index) => (
-            <Stack
-              key={index}
-              className={`${
-                message?.senderId === user?._id
-                  ? "message self align-self-end flex-grow-0"
-                  : "message align-self-start flex-grow-0"
-              } message-container`}
-              ref={scroll}
-              direction="horizontal"
-              gap={2}
-              onMouseEnter={() => setHoveredMessageId(message._id)} // Thiết lập ID tin nhắn khi hover
-              onMouseLeave={() => setHoveredMessageId(null)} // Thiết lập lại ID khi không hover
-            >
-              <div className="message-content" style={{ position: 'relative', flexGrow: 1 }}>
-                <span>{message.text}</span>
-                {translations[message._id] && (
-                  <>
-                    <hr style={{ margin: "8px 0", border: "2px solid #ccc" }} />
-                    <span className="translated-text">{translations[message._id]}</span>
-                  </>
-                )}
-             {/* Hiển thị thời gian chỉ cho tin nhắn đang hover */}
-{hoveredMessageId === message._id && (
-  <span
-    className="message-footer"
-    style={{
-      position: 'absolute',
-      bottom: '-32px',
-      right: message.senderId === user?._id ? '0' : 'auto', // Căn phải nếu là tin nhắn của bạn
-      left: message.senderId !== user?._id ? '0' : 'auto', // Căn trái nếu là tin nhắn của người khác
-      textAlign: message.senderId === user?._id ? 'right' : 'left', // Canh phải hoặc trái
-    }}
+      {messages &&
+  messages.map((message, index) => (
+    <Stack
+    key={index}
+    className={`${
+      message?.senderId === user?._id
+        ? "message self align-self-end flex-grow-0"
+        : "message align-self-start flex-grow-0"
+    } message-container`}
+    direction="horizontal"
+    gap={2}
+    ref={scroll}
+    onMouseEnter={() => setHoveredMessageId(message._id)}
+    onMouseLeave={() => setHoveredMessageId(null)}
   >
-    {moment(message.createdAt).calendar()}
-  </span>
-)}
+    <div className="message-content" style={{ position: 'relative', flexGrow: 1 }}>
+      <span>{message.text}</span>
+      {translations[message._id] && (
+        <>
+          <hr style={{ margin: "8px 0", border: "2px solid #ccc" }} />
+          <span className="translated-text">{translations[message._id]}</span>
+        </>
+      )}
+      {/* Hiển thị thời gian chỉ cho tin nhắn đang hover */}
+      {hoveredMessageId === message._id && (
+        <span
+          className="message-footer"
+          style={{
+            position: 'absolute',
+            bottom: '-32px',
+            right: message.senderId === user?._id ? '0' : 'auto',
+            left: message.senderId !== user?._id ? '0' : 'auto',
+            textAlign: message.senderId === user?._id ? 'right' : 'left',
+          }}
+        >
+          {moment(message.createdAt).calendar()}
+        </span>
+      )}
+    </div>
+  
+    {/* Đặt nút dịch ở bên ngoài message-content */}
+    {message.senderId !== user?._id && (
+     <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
+     <button
+       className="translate-btn"
+       onClick={() => handleTranslate(message)}
+       style={{ position: "absolute", left: "25px" }} // Thay đổi ở đây
+     >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            fill="currentColor"
+            className="bi bi-translate"
+            viewBox="0 0 15 15"
+          >
+            <path d="M4.545 6.714 4.11 8H3l1.862-5h1.284L8 8H6.833l-.435-1.286zm1.634-.736L5.5 3.956h-.049l-.679 2.022z" />
+            <path d="M0 2a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v3h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-3H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zm7.138 9.995q.289.451.63.846c-.748.575-1.673 1.001-2.768 1.292.178.217.451.635.555.867 1.125-.359 2.08-.844 2.886-1.494.777.665 1.739 1.165 2.93 1.472.133-.254.414-.673.629-.89-1.125-.253-2.057-.694-2.82-1.284.681-.747 1.222-1.651 1.621-2.757H14V8h-3v1.047h.765c-.318.844-.74 1.546-1.272 2.13a6 6 0 0 1-.415-.492 2 2 0 0 1-.94.31" />
+          </svg>
+        </button>
+      </div>
+    )}
+  </Stack>
+  
+  ))}
 
-              </div>
-
-              {/* Nút dịch nằm bên phải khối tin nhắn */}
-              {message.senderId !== user?._id && (
-                <button 
-                  className="translate-btn" 
-                  onClick={() => handleTranslate(message)} 
-                  style={{ marginLeft: '10px' }} // Đảm bảo nút dịch nằm bên phải
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    fill="currentColor"
-                    className="bi bi-translate"
-                    viewBox="0 0 16 16"
-                  >
-                    <path d="M4.545 6.714 4.11 8H3l1.862-5h1.284L8 8H6.833l-.435-1.286zm1.634-.736L5.5 3.956h-.049l-.679 2.022z" />
-                    <path d="M0 2a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v3h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-3H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zm7.138 9.995q.289.451.63.846c-.748.575-1.673 1.001-2.768 1.292.178.217.451.635.555.867 1.125-.359 2.08-.844 2.886-1.494.777.665 1.739 1.165 2.93 1.472.133-.254.414-.673.629-.89-1.125-.253-2.057-.694-2.82-1.284.681-.747 1.222-1.651 1.621-2.757H14V8h-3v1.047h.765c-.318.844-.74 1.546-1.272 2.13a6 6 0 0 1-.415-.492 2 2 0 0 1-.94.31" />
-                  </svg>
-                </button>
-              )}
-            </Stack>
-          ))}
       </Stack>
 
       <Stack direction="horizontal" gap={3} className="chat-input flex-grow-0">
