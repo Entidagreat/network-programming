@@ -6,6 +6,7 @@ import { useFetchRecipientUser } from "../../hooks/useFetchRecipient";
 import moment from "moment";
 import InputEmoji from "react-input-emoji";
 import { translateText } from "../../utils/translate"; 
+import he from "he";
 
 const ChatBox = () => {
   const { user } = useContext(AuthContext);
@@ -30,14 +31,17 @@ const ChatBox = () => {
     }
   };
 
+  // Trong hàm handleTranslate:
   const handleTranslate = async (message) => {
-    try {
-      const translatedText = await translateText(message.text, 'en'); 
-      setTranslations(prev => ({ ...prev, [message._id]: translatedText })); 
-    } catch (error) {
-      console.error("Error translating message:", error);
-    }
+      try {
+          const translatedText = await translateText(message.text, 'en'); 
+          const decodedText = he.decode(translatedText); // Giải mã nội dung
+          setTranslations(prev => ({ ...prev, [message._id]: decodedText })); 
+      } catch (error) {
+          console.error("Error translating message:", error);
+      }
   };
+  
 
   if (!user) {
     return <p style={{ textAlign: "center", width: "100%" }}>Loading user...</p>;
