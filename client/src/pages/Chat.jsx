@@ -16,24 +16,34 @@ const Chat = () => {
         <Container>
             <PotentialChats setRefresh={setRefresh} />
             {userChats?.length < 1 ? null : (
-                <Stack direction="horizontal" gap={4} className="align-items-start">
-                    <Stack className="messages-box flex-grow-0 pe-3" gap={3}>
-                        {isUserChatsLoading && <p>Loading chats...</p>}
-                        {userChats?.map((chat, index) => {
-                            // Kiểm tra xem người nhận có tồn tại trong allUsers hay không
-                            const recipientId = chat.members.find(id => id !== user._id);
-                            const recipientExists = allUsers.some(u => u._id === recipientId);
-
-                            // Chỉ render UserChat nếu người nhận tồn tại
-                            return recipientExists ? (
-                                <div key={index} onClick={() => updateCurrentChat(chat)}>
-                                    <UserChat chat={chat} user={user} />
-                                </div>
-                            ) : null;
-                        })}
-                    </Stack>
-                    <ChatBox />
-                </Stack>
+               <Stack direction="horizontal" gap={4} className="align-items-start">
+               <Stack className="messages-box flex-grow-0 pe-3" gap={3}>
+               <div className="chat-list" style={{ position: "relative" }}>
+               <div style={{ position: "sticky", top: 0, zIndex: 1, backgroundColor: "white" }}>
+             <input
+                type="text"
+                placeholder="Search conversation"
+                className="form-control mb-3"
+              />
+            </div>
+                       {isUserChatsLoading && <p>Loading chats...</p>}
+                       {userChats?.map((chat, index) => {
+                           // Kiểm tra xem người nhận có tồn tại trong allUsers hay không
+                           const recipientId = chat.members.find(id => id !== user._id);
+                           const recipientExists = allUsers.some(u => u._id === recipientId);
+           
+                           // Chỉ render UserChat nếu người nhận tồn tại
+                           return recipientExists ? (
+                               <div key={chat._id} onClick={() => updateCurrentChat(chat)}>
+                                   <UserChat chat={chat} user={user} />
+                               </div>
+                           ) : null;
+                       })}
+                   </div>
+               </Stack>
+               <ChatBox />
+           </Stack>
+           
             )}
         </Container>
     );
