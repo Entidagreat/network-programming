@@ -33,6 +33,7 @@ const UserChat = ({ chat, user }) => {
     }
 
     return (
+        <div className="chat-list">{}
         <Stack
             direction="horizontal"
             gap={3}
@@ -71,6 +72,7 @@ const UserChat = ({ chat, user }) => {
                 <span className={isOnline ? "user-online" : ""}></span>
             </div>
         </Stack>
+        </div>
     );
 };
 

@@ -9,15 +9,16 @@ const NavBar = () => {
     const { user, logoutUser } = useContext(AuthContext);
 
     return (
-        <Navbar bg="dark" className="mb-4" style={{ height: "3.75rem" }}>
+        // <Navbar bg="white" className="mb-4" style={{ height: "3.75rem" }}>
+            <Navbar style={{ backgroundColor: "#af8260", height: "3.75rem" }} className="mb-4">
             <Container>
                 <h2>
                     <Link to="/" className="link-light text-decoration-none">
-                        ChatApp
+                        4FG Co-op
                     </Link>
                 </h2>
                 {user && (
-                    <span className="text-warning">Logged in as {user?.name}</span>
+                    <span >Logged in as {user?.name}</span>
                 )}
                 <Nav>
                     <Stack direction="horizontal" gap={3}>

@@ -3,7 +3,7 @@
 body{
   color: white;
   font-family: "Open Sans", sans-serif;
-  background: rgb(40,40,40);
+  background: #e4c59e;
 }
 /* All users */
 .all-users {
@@ -21,9 +21,9 @@ body{
   position: relative;
 }
 
-/* User Card */
+/* User Card(list) */
 .user-card {
-  color: white;
+  color: black;
   position: relative;
   border-bottom: 1px solid rgb(100, 100, 100);
   width: 380px;
@@ -39,8 +39,9 @@ body{
 
 .user-card .text,
 .user-card .date {
-  font-size: 14px;
-  color: rgb(180, 180, 180);
+  font-size: 15px;
+  color: black;
+  border: black;
 }
 
 .user-online {
@@ -48,7 +49,7 @@ body{
   height: 12px;
   width: 12px;
   border-radius: 50%;
-  background: rgb(0, 219, 0);
+  background: #859f3d;
   position: absolute;
   top: -3px;
   right: -3px;
@@ -59,7 +60,7 @@ body{
 .chat-box {
   max-height: calc(100vh - 10rem);
   overflow-y: auto;
-  background: rgb(25, 25, 25);
+  background: #fff4ea;
   border-radius: 10px;
 }
 
@@ -73,8 +74,8 @@ body{
   align-items: center;
   justify-content: center;
   padding: 0.75rem;
-  color: white;
-  background: rgb(30, 30, 30);
+  color: #37342d;
+  background: #fff1e4;
 }
 
 /* Messages */
@@ -85,18 +86,23 @@ body{
 }
 
 .message {
-  color: white;
-  background: #282828;
+  color:  #fff8dc;
+  background: #C96868;
   padding: 0.75rem;
   border-radius: 5px;
   max-width: 50%;
   text-align: left;
   text-align: justify;
 }
-/* thanh ten */
+/* chat cua user */
 .message.self {
-  color: white;
-  background: #00bd9b;
+  color: #fff8dc;
+  background: #4793af;
+  padding: 0.75rem;
+  border-radius: 5px;
+  max-width: 50%;
+  text-align: left;
+  text-align: justify;
 }
 
 .message-footer {
@@ -105,23 +111,23 @@ body{
   font-weight: 400;
   position: absolute; /* Thêm thuộc tính này để đảm bảo vị trí tuyệt đối */
   right: 0; /* Căn phải */
-  bottom: -32px; /* Khoảng cách so với đáy của message-content */
+  bottom: -10px; /* Khoảng cách so với đáy của message-content */
   text-align: right; /* Căn phải cho nội dung bên trong */
-  margin-top: 15px;
   min-width: 150px;
+  color: #33342d;
 }
 
 
 /* Chat Input  */
 .chat-input {
   width: 100%;
-  background: rgb(30, 30, 30);
+  background: #fff4ea;
   padding: 1rem;
 }
 .send-btn {
   border: none;
-  background: rgba(72, 112, 223, 1);
-  color: white;
+  background: #4793af;
+  color: #fff4ea;
   height: 40px;
   width: 40px;
   border-radius: 50%;
@@ -147,7 +153,7 @@ body{
   right: 0;
   box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px,
     rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
-  background: #181d31;
+  background: #803d3b;
   color: white;
   z-index: 5;
 }
@@ -182,7 +188,7 @@ body{
 }
 
 .notification.not-read {
-  background: #263159;
+  background: #dd5746;
 }
 
 .notification-time {
@@ -193,7 +199,7 @@ body{
 
 .notification-count {
   display: flex;
-  background: #00bd9b;
+  background: #DD5746;
   height: 25px;
   width: 25px;
   font-size: 14px;
@@ -220,7 +226,7 @@ body{
 
 /* new */
 .translate-btn {
-  color: white; /* Màu chữ là trắng */
+  color: #37342d; /* Màu chữ là trắng */
   background-color: transparent; /* Nền trong suốt */
   border: none; /* Bỏ viền */
   outline: none; /* Bỏ viền ngoài khi nhấn */
@@ -231,10 +237,38 @@ body{
 .translated-text{
   display:block;
   margin-top: 1.5px;
-  color: white;
+  color: #fff8dc;
   opacity: 1;
 }
 
 .hr{
   border-top: white 5px solid;
+}
+/* thanh cuọn*/
+
+::-webkit-scrollbar {
+  width: 7.5px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 20px;
+}
+
+/* ::-webkit-scrollbar-track {
+  background: #f1f1f1;
+} */
+/* .user-card align-items-center p-2 justify-context-between{
+  height: calc(100vh - 10rem); 
+  overflow-y: auto;
+  background-color: #00bd9b;
+} */
+
+.chat-list {
+  max-height: calc(100vh - 10rem);
+  overflow-y: auto;
+  background: #fff4ea;
+  border-radius: 10px;
+
+
 }
