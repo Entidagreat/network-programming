@@ -1,7 +1,12 @@
 const { on } = require("nodemon");
 const { Server } = require("socket.io");
 
-const io = new Server({ cors: "http://localhost:5173" });
+const io = new Server({
+    cors: {
+        origin: "http://localhost:5173", // Update this to match your client's URL
+        methods: ["GET", "POST"]
+    }
+});
 
 let onlineUsers = [];
 
@@ -25,7 +30,7 @@ io.on("connection", (socket) => {
 
         if (user) {
             io.to(user.socketId).emit("getMessage", message);
-            io.to(user.socketId).emit("getNotification",{
+            io.to(user.socketId).emit("getNotification", {
                 senderId: message.senderId,
                 isRead: false,
                 date: new Date(),
