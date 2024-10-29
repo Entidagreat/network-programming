@@ -11,7 +11,8 @@ const userSchema = new mongoose.Schema({
         default: 'user'
     },
     friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    groups: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Group' }]
+    groups: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Group' }],
+    group: { type: mongoose.Schema.Types.ObjectId, ref: 'Group' } // New attribute
 },
     { timestamps: true }
 );

@@ -37,6 +37,9 @@ io.on("connection", (socket) => {
             });
         }
     });
+    socket.on("sendGroupMessage", (message) => {
+        io.emit("getGroupMessage", message);
+    });
 
     socket.on("disconnect", () => {
         onlineUsers = onlineUsers.filter(user => user.socketId !== socket.id);

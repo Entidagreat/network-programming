@@ -11,6 +11,11 @@ const createMessage = async (req, res) => {
   
     try {
       const response = await message.save();
+      if (isGroup) {
+        await groupModel.findByIdAndUpdate(chatId, {
+          $push: { messages: response._id }
+        });
+      }
       res.status(200).json(response);
     } catch (error) {
       console.log(error);

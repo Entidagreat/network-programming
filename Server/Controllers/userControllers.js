@@ -1,9 +1,9 @@
 const userModel = require("../Models/userModel");
 const jwt = require("jsonwebtoken");
 const validator = require("validator");
-const bcrypt = require("bcrypt"); 
+const bcrypt = require("bcrypt");
 const chatModel = require("../Models/ChatModel");
-const messageModel = require("../Models/MessageModel");
+const messageModel = require("../Models/messageModel");
 const createToken = (_id) => {
     const jwtkey = process.env.JWT_SECRET_KEY;
 
@@ -50,7 +50,7 @@ const loginUser = async (req, res) => {
         if (!user) return res.status(400).json("email hoặc mật khẩu không đúng");
 
         // Kiểm tra mật khẩu
-        const isMatch = await bcrypt.compare(password, user.password); 
+        const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(400).json("email hoặc mật khẩu không đúng");
 
         const token = createToken(user._id);
@@ -67,7 +67,7 @@ const findUser = async (req, res) => {
 
         if (!user) {
             // Trả về lỗi 404 nếu không tìm thấy user
-            return res.status(404).json({ error: "Không tìm thấy người dùng" }); 
+            return res.status(404).json({ error: "Không tìm thấy người dùng" });
         }
 
         res.status(200).json(user);
