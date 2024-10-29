@@ -265,7 +265,8 @@ body{
 } */
 
 .chat-list {
-  max-height: calc(100vh - 10rem);
+  max-height: calc(100vh);
+  width: 380px;
   overflow-y: auto;
   background: #fff4ea;
   border-radius: 10px;

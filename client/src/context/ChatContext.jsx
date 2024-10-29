@@ -233,6 +233,17 @@ export const ChatContextProvider = ({ children, user }) => {
     []
 );
 
+
+const updateUserChats = useCallback(async () => {
+    if (user?._id) {
+        const response = await getRequest(`${baseUrl}/chats/${user?._id}`);
+        if (response.error) {
+            return setUserChatsError(response.message);
+        }
+        setUserChats(response);
+    }
+}, [user?._id]); // Chỉ re-create hàm khi user._id thay đổi
+
 const markThisUserNotificationsAsRead = useCallback(
     (thisUserNotifications , notifications) => {
     //mark notifications as read
@@ -275,7 +286,7 @@ const markThisUserNotificationsAsRead = useCallback(
                 markAllNotificationsAsRead,
                 markAllNotificationAsRead,
                 markThisUserNotificationsAsRead,
-
+                updateUserChats,
             }}
         >
             {children}
