@@ -6,28 +6,28 @@ export const useFetchRecipientUser = (chat, user) => {
     const [error, setError] = useState(null);
 
     const recipientId = chat?.members?.find((id) => id !== user?._id);
- 
 
     useEffect(() => {
         const getUser = async () => {
             if (!recipientId) return null;
-    
+
             try {
                 const response = await getRequest(`${baseUrl}/users/find/${recipientId}`);
                 setRecipientUser(response);
             } catch (error) {
-                if (error.response.status === 404) {
+                if (error.response?.status === 404) { // Kiểm tra error.response trước khi truy cập status
                     console.log("Không tìm thấy người dùng");
                     setRecipientUser(null); // Hoặc hiển thị thông báo lỗi
                 } else {
                     console.error("Lỗi khi gọi API:", error);
+                    setError(error);
                 }
             }
         };
-    
+
         getUser();
     }, [recipientId]);
 
-    return {recipientUser};
+    return { recipientUser, error }; // Trả về error để component sử dụng
 
 };

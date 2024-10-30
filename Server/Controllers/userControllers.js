@@ -102,4 +102,27 @@ const deleteUser = async (req, res) => { // Thêm hàm deleteUser
         res.status(500).json({ message: 'Lỗi server' });
     }
 };
-module.exports = { registerUser, loginUser, findUser, getUsers, deleteUser }; // Thêm hàm deleteUser
+const escapeRegExp = (string) => {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+}
+const searchUsersByName = async (req, res) => {
+    try {
+        const name = req.query.name;
+        if (!name) {
+            return res.status(400).json({ message: 'Vui lòng cung cấp tên người dùng' });
+        }
+        console.log('Tìm kiếm người dùng theo tên:', name);
+
+        const escapedName = escapeRegExp(name); // Escape các ký tự đặc biệt
+
+        const users = await userModel.find({ name: { $regex: new RegExp(escapedName, 'i') } });
+
+        console.log('Kết quả tìm kiếm:', users);
+        res.status(200).json(users);
+    } catch (error) {
+        console.error('Lỗi khi tìm kiếm người dùng:', error);
+        res.status(500).json({ message: 'Lỗi server' });
+    }
+};
+
+module.exports = { registerUser, loginUser, findUser, getUsers, deleteUser, searchUsersByName, escapeRegExp };
