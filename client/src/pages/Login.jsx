@@ -25,7 +25,7 @@ const Login = () => {
                     <Col xs={6}>
                         <Stack>
                             <h2>Login</h2>
-                            <Form.Control type="email" placeholder="Email" onChange={(e) =>
+                            <Form.Control type="text" placeholder="Email" onChange={(e) =>
                                 updateLoginInfo({ ...loginInfo, email: e.target.value })
                             } />
                             <Form.Control type="password" placeholder="Password" onChange={(e) =>

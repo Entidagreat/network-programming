@@ -18,7 +18,7 @@ const Register = () => {
                             <Form.Control type="text" placeholder="Name" onChange={(e) =>
                                 updateRegisterInfo({ ...registerInfo, name: e.target.value })
                             } />
-                            <Form.Control type="email" placeholder="Email" onChange={(e) =>
+                            <Form.Control type="text" placeholder="Email" onChange={(e) =>
                                 updateRegisterInfo({ ...registerInfo, email: e.target.value })
                             } />
                             <Form.Control type="password" placeholder="Password" onChange={(e) =>
