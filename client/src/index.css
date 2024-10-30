@@ -253,6 +253,7 @@ body{
 ::-webkit-scrollbar-thumb {
   background: #888;
   border-radius: 20px;
+  height: 50px;
 }
 
 /* ::-webkit-scrollbar-track {
@@ -265,11 +266,10 @@ body{
 } */
 
 .chat-list {
-  max-height: calc(100vh);
+  max-height: calc(100vh- 10rem);
   width: 380px;
   overflow-y: auto;
-  background: #fff4ea;
+  background: #F9EFDB;
   border-radius: 10px;
-
-
+  min-width: 380px;
 }
