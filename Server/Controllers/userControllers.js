@@ -21,7 +21,6 @@ const registerUser = async (req, res) => {
             return res.status(400).json("Vui lòng nhập đầy đủ email và password");
         };
         if (!validator.isEmail(email)) return res.status(400).json("Email không khả dụng!");
-        if (!validator.isStrongPassword(password)) return res.status(400).json(" Mật khẩu phải chứa ít nhất 8 ký tự, 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt");
 
         // Hash the password
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -47,6 +46,7 @@ const loginUser = async (req, res) => {
         }
 
         let user = await userModel.findOne({ email });
+
         if (!user) return res.status(400).json("email hoặc mật khẩu không đúng");
 
         // Kiểm tra mật khẩu
@@ -54,6 +54,7 @@ const loginUser = async (req, res) => {
         if (!isMatch) return res.status(400).json("email hoặc mật khẩu không đúng");
 
         const token = createToken(user._id);
+        
         res.status(200).json({ _id: user._id, name: user.name, email, token });
     } catch (error) {
         console.log(error);

@@ -60,5 +60,33 @@ const getUserGroups = async (req, res) => {
         res.status(500).json(error);
     }
 };
+const addUserToGroup = async (req, res) => {
+    const { groupId, userId } = req.body;
 
-module.exports = { createGroup, sendMessageToGroup, getUserGroups };
+    try {
+        const group = await Group.findById(groupId);
+        if (!group) {
+            return res.status(404).json({ message: 'Group not found' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const isMember = group.members.some(member => member.user.toString() === userId);
+        if (isMember) {
+            return res.status(400).json({ message: 'User is already a member of the group' });
+        }
+
+        group.members.push({ user: userId, role: 'member' });
+        await group.save();
+
+        res.status(200).json({ message: 'User added to group successfully', group });
+    } catch (error) {
+        console.error('Error adding user to group:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+module.exports = { createGroup, sendMessageToGroup, getUserGroups, addUserToGroup };
