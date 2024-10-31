@@ -5,9 +5,7 @@ import { AuthContext } from "../context/AuthContext";
 import { ChatContext } from "../context/ChatContext";
 import PotentialChats from "../components/chat/PotentialChats";
 import ChatBox from "../components/chat/ChatBox";
-import { GroupContextProvider } from "../context/GroupContext";
-import GroupList from "../components/chat/GroupList";
-import GroupChat from "../components/chat/GroupChat";
+
 
 const Chat = () => {
   const { user } = useContext(AuthContext);
@@ -39,7 +37,7 @@ const Chat = () => {
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
       />
-      {filteredChatList?.length < 1 ? null : ( 
+      {filteredChatList?.length < 1 ? null : (
         // Sử dụng filteredChatList thay vì userChats
         <Stack direction="horizontal" gap={4} className="align-items-start">
           <Stack className="messages-box flex-grow-0 pe-3" gap={3}>
@@ -61,7 +59,7 @@ const Chat = () => {
                 />
               </div>}
               {isUserChatsLoading && <p>Loading chats...</p>}
-              {filteredChatList?.map((chat) => { 
+              {filteredChatList?.map((chat) => {
                 // Sử dụng filteredChatList thay vì userChats
                 const recipientId = chat.members.find((id) => id !== user._id);
                 const recipientExists = filteredUsers.some(
@@ -77,7 +75,7 @@ const Chat = () => {
             </div>
           </Stack>
           <ChatBox />
-          
+
         </Stack>
       )}
     </Container>
