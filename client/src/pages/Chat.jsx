@@ -5,6 +5,9 @@ import { AuthContext } from "../context/AuthContext";
 import { ChatContext } from "../context/ChatContext";
 import PotentialChats from "../components/chat/PotentialChats";
 import ChatBox from "../components/chat/ChatBox";
+import { GroupContextProvider } from "../context/GroupContext";
+import GroupList from "../components/chat/GroupList";
+import GroupChat from "../components/chat/GroupChat";
 
 const Chat = () => {
   const { user } = useContext(AuthContext);
@@ -45,6 +48,12 @@ const Chat = () => {
             </div>
           </Stack>
           <ChatBox />
+          <GroupContextProvider>
+            <Stack direction="horizontal" gap={4} className="align-items-start">
+              <GroupList />
+              <GroupChat />
+            </Stack>
+          </GroupContextProvider>
         </Stack>
       )}
     </Container>

@@ -163,6 +163,7 @@ export const ChatContextProvider = ({ children, user }) => {
                     chatId: currentChatId,
                     senderId: sender._id,
                     text: textMessage,
+                    isGroupMessage: currentChat.isGroupChat,
                 })
             );
             if (response.error) {
@@ -173,19 +174,21 @@ export const ChatContextProvider = ({ children, user }) => {
             setMessages((prev) => [...prev, response]);
             setTextMessage("");
         },
-        []
+        [currentChat]
     );
 
     const updateCurrentChat = useCallback((chat) => {
         setCurrentChat(chat);
     }, []);
 
-    const createChat = useCallback(async (firstId, secondId) => {
+    const createChat = useCallback(async (firstId, secondId, isGroupChat = false, groupName = '') => {
         const response = await postRequest(
             `${baseUrl}/chats`,
             JSON.stringify({
                 firstId,
                 secondId,
+                isGroupChat,
+                groupName,
             })
         );
 
