@@ -41,16 +41,7 @@ const sendMessageToGroup = async (req, res) => {
 };
 
 // Get messages of a group
-const getGroupMessages = async (req, res) => {
-    const { groupId } = req.params;
 
-    try {
-        const group = await Group.findById(groupId).populate('messages');
-        res.status(200).json(group.messages);
-    } catch (error) {
-        res.status(500).json(error);
-    }
-};
 
 const getUserGroups = async (req, res) => {
     const userId = req.params.userId;
@@ -102,4 +93,4 @@ const addUserToGroup = async (req, res) => {
     }
 };
 
-module.exports = { createGroup, sendMessageToGroup, getUserGroups, addUserToGroup, getGroupMessages };
+module.exports = { createGroup, sendMessageToGroup, getUserGroups, addUserToGroup, };
