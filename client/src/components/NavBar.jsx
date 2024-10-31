@@ -10,7 +10,7 @@ const NavBar = () => {
 
     return (
         // <Navbar bg="white" className="mb-4" style={{ height: "3.75rem" }}>
-            <Navbar style={{ backgroundColor: "#af8260", height: "3.75rem" }} className="mb-4">
+        <Navbar style={{ backgroundColor: "#af8260", height: "3.75rem" }} className="mb-4">
             <Container>
                 <h2>
                     <Link to="/" className="link-light text-decoration-none">
@@ -24,12 +24,12 @@ const NavBar = () => {
                     <Stack direction="horizontal" gap={3}>
                         {
                             user && (
-                            <>
-                            <Notification />
-                                <Link onClick={() => logoutUser()} to="/login" className="link-light text-decoration-none">
-                                    Logout
-                                </Link>
-                            </>)
+                                <>
+                                    <Notification />
+                                    <Link onClick={() => logoutUser()} to="/login" className="link-light text-decoration-none">
+                                        Logout
+                                    </Link>
+                                </>)
                         }
 
                         {!user && (<>
