@@ -54,7 +54,7 @@ const loginUser = async (req, res) => {
         if (!isMatch) return res.status(400).json("email hoặc mật khẩu không đúng");
 
         const token = createToken(user._id);
-        
+
         res.status(200).json({ _id: user._id, name: user.name, email, token });
     } catch (error) {
         console.log(error);

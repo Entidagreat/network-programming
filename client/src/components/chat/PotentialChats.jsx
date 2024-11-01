@@ -57,7 +57,7 @@ const PotentialChats = ({ setRefresh }) => {
                   : ""
               }
             ></span>
-           
+
           </div>
         ))}
     </div>

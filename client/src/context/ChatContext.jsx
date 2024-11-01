@@ -67,8 +67,8 @@ export const ChatContextProvider = ({ children, user }) => {
             const isChatOpen = currentChat?.members.some(id => id === res.senderId);
 
             if (isChatOpen) {
-                setNotifications( prev => [{...res, isRead:true}, ...prev]);
-            }else{
+                setNotifications(prev => [{ ...res, isRead: true }, ...prev]);
+            } else {
                 setNotifications(prev => [res, ...prev]);
             }
         });
@@ -200,73 +200,73 @@ export const ChatContextProvider = ({ children, user }) => {
     }, []);
 
     const markAllNotificationsAsRead = useCallback((notifications) => {
-        const mNotification = notifications.map((n) =>{
-            return {...n, isRead: true};
+        const mNotification = notifications.map((n) => {
+            return { ...n, isRead: true };
         });
 
         setNotifications(mNotification);
 
-    }, []); 
+    }, []);
 
-    const markAllNotificationAsRead = useCallback (
-    (n, userChats, user, notifications) => {
-        //find chat to open
+    const markAllNotificationAsRead = useCallback(
+        (n, userChats, user, notifications) => {
+            //find chat to open
 
-        const desiredChat = userChats.find((chat) => {
-            const chatMembers = [user._id, n.senderId];
-            const isDesiredChat = chat?.members.every((member) => {
-                return chatMembers.includes(member);
+            const desiredChat = userChats.find((chat) => {
+                const chatMembers = [user._id, n.senderId];
+                const isDesiredChat = chat?.members.every((member) => {
+                    return chatMembers.includes(member);
+                });
+
+                return isDesiredChat;
+            });
+            // mark notification as read
+            const mNotifications = notifications.map((el) => {
+                if (n.senderId === el.senderId) {
+                    return { ...n, isRead: true };
+                } else {
+                    return el;
+                }
+
             });
 
-            return isDesiredChat;
-        });
-        // mark notification as read
-        const mNotifications = notifications.map((el) => {
-            if(n.senderId === el.senderId){
-                return {...n, isRead: true};
-            } else {
-                return el;
+            updateCurrentChat(desiredChat);
+            setNotifications(mNotifications);
+        },
+        []
+    );
+
+
+    const updateUserChats = useCallback(async () => {
+        if (user?._id) {
+            const response = await getRequest(`${baseUrl}/chats/${user?._id}`);
+            if (response.error) {
+                return setUserChatsError(response.message);
             }
- 
-        });
-
-        updateCurrentChat(desiredChat);
-        setNotifications(mNotifications);
-    }, 
-    []
-);
-
-
-const updateUserChats = useCallback(async () => {
-    if (user?._id) {
-        const response = await getRequest(`${baseUrl}/chats/${user?._id}`);
-        if (response.error) {
-            return setUserChatsError(response.message);
+            setUserChats(response);
         }
-        setUserChats(response);
-    }
-}, [user?._id]); // Chỉ re-create hàm khi user._id thay đổi
+    }, [user?._id]); // Chỉ re-create hàm khi user._id thay đổi
 
-const markThisUserNotificationsAsRead = useCallback(
-    (thisUserNotifications , notifications) => {
-    //mark notifications as read
+    const markThisUserNotificationsAsRead = useCallback(
+        (thisUserNotifications, notifications) => {
+            //mark notifications as read
 
-    const mNotifications = notifications.map((el) => {
-        let notification;
+            const mNotifications = notifications.map((el) => {
+                let notification;
 
-        thisUserNotifications.forEach((n) => {
-            if(n.senderId === el.senderId){
-                notification = {...n, isRead: true};
-            } else {
-                notification = el;
-            }
-        });
-        return notification;
-    });
-    setNotifications(mNotifications);
-},
-[]
-);
+                thisUserNotifications.forEach((n) => {
+                    if (n.senderId === el.senderId) {
+                        notification = { ...n, isRead: true };
+                    } else {
+                        notification = el;
+                    }
+                });
+                return notification;
+            });
+            setNotifications(mNotifications);
+        },
+        []
+    );
 
     return (
         <ChatContext.Provider

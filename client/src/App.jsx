@@ -12,7 +12,7 @@ import { ChatContextProvider } from "./context/ChatContext";
 function App() {
   const { user } = useContext(AuthContext);
   return (
-    <ChatContextProvider user = {user}>
+    <ChatContextProvider user={user}>
       <NavBar />
       <Container>
         <Routes>

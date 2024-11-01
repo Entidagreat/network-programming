@@ -23,23 +23,29 @@ const createGroup = async (req, res) => {
 const sendMessageToGroup = async (req, res) => {
     const { groupId, senderId, text } = req.body;
 
-    const message = new Message({
-        sender: senderId,
-        text,
-        group: groupId,
-    });
-
     try {
-        const savedMessage = await message.save();
-        await Group.findByIdAndUpdate(groupId, {
-            $push: { messages: savedMessage._id }
+        const group = await Group.findById(groupId);
+
+        if (!group) {
+            return res.status(404).json({ message: 'Group not found' });
+        }
+
+        const message = new Message({
+            sender: senderId,
+            text,
+            group: groupId,
         });
+
+        const savedMessage = await message.save();
+        group.messages.push(savedMessage._id);
+        await group.save();
+
         res.status(200).json(savedMessage);
     } catch (error) {
+        console.log(error);
         res.status(500).json(error);
     }
 };
-
 // Get messages of a group
 
 

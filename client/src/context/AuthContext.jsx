@@ -75,14 +75,14 @@ export const AuthContextProvider = ({ children }) => {
         setUser(response);
     }, [loginInfo]);
 
-   
+
 
     const logoutUser = useCallback(() => {
         localStorage.removeItem("User");
         setUser(null);
         setLoginInfo({ email: "", password: "" }); // Clear loginInfo
     }, []);
-    
+
 
     return (
         <AuthContext.Provider

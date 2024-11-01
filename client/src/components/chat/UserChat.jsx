@@ -9,8 +9,8 @@ import moment from "moment";
 
 const UserChat = ({ chat, user }) => {
     const { recipientUser } = useFetchRecipientUser(chat, user);
-    const { onlineUsers, notifications, markThisUserNotificationsAsRead } = 
-    useContext(ChatContext);
+    const { onlineUsers, notifications, markThisUserNotificationsAsRead } =
+        useContext(ChatContext);
     const { latestMessage } = useFetchLatestMessage(chat);
 
 
@@ -38,8 +38,8 @@ const UserChat = ({ chat, user }) => {
             gap={3}
             className="user-card align-items-center p-2 justify-context-between"
             role="button"
-            onClick= { () => {
-                if(thisUserNotifications?.length !== 0){
+            onClick={() => {
+                if (thisUserNotifications?.length !== 0) {
                     markThisUserNotificationsAsRead(thisUserNotifications, notifications);
                 }
             }}
@@ -54,19 +54,19 @@ const UserChat = ({ chat, user }) => {
                         {latestMessage?.text && (
                             <span>{truncateText(latestMessage?.text)}</span>
                         )}
-                        </div>
+                    </div>
                 </div>
             </div>
             <div className="d-flex flex-colum align-items-end">
                 <div className="date">{moment(latestMessage?.createdAt).calendar()}</div>
-                <div 
-                className={
-                    thisUserNotifications?.length > 0? "this-user-notifications" : ""
+                <div
+                    className={
+                        thisUserNotifications?.length > 0 ? "this-user-notifications" : ""
                     }
-                    >
-                    {thisUserNotifications?.length >0 
-                    ? thisUserNotifications?.length 
-                    : ""}
+                >
+                    {thisUserNotifications?.length > 0
+                        ? thisUserNotifications?.length
+                        : ""}
                 </div>
                 <span className={isOnline ? "user-online" : ""}></span>
             </div>
