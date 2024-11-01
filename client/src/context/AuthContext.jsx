@@ -13,6 +13,7 @@ export const AuthContextProvider = ({ children }) => {
         name: "",
         email: "",
         password: "",
+        profilePicture: null
     });
     const [loginError, setLoginError] = useState(null);
     const [isLoginLoading, setIsLoginLoading] = useState(false);
@@ -38,27 +39,67 @@ export const AuthContextProvider = ({ children }) => {
         setRegisterInfo(info);
     }, []);
 
-    const registerUser = useCallback(async (e) => {
-        e.preventDefault();
+    // Update the registerUser function
+// 1. First, verify the content type is properly set for FormData
+const registerUser = useCallback(async (e) => {
+    e.preventDefault();
+    setIsRegisterLoading(true);
+    setRegisterError(null);
 
-        setIsRegisterLoading(true);
-        setRegisterError(null);
+    try {
+        // Input validation
+        if (!registerInfo.name || !registerInfo.email || !registerInfo.password) {
+            throw new Error('Please fill all required fields');
+        }
 
-        const response = await postRequest(
-            `${baseUrl}/users/register`,
-            JSON.stringify(registerInfo)
-        );
+        const formData = new FormData();
+        formData.append('name', registerInfo.name);
+        formData.append('email', registerInfo.email);
+        formData.append('password', registerInfo.password);
 
+        // Use 'image' field name to match Multer config
+        if (registerInfo.profilePicture instanceof File) {
+            formData.append('image', registerInfo.profilePicture);
+            console.log('File details:', {
+                name: registerInfo.profilePicture.name,
+                type: registerInfo.profilePicture.type,
+                size: registerInfo.profilePicture.size
+            });
+        }
+
+        const response = await fetch(`${baseUrl}/users/register`, {
+            method: 'POST',
+            body: formData
+        });
+
+        const contentType = response.headers.get('content-type');
+        
+        // Handle non-JSON responses
+        if (contentType?.includes('text/html')) {
+            const text = await response.text();
+            console.error('Server returned HTML:', text);
+            throw new Error('Server error - please try again');
+        }
+
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.message || `Server error: ${response.status}`);
+        }
+
+        localStorage.setItem('User', JSON.stringify(data));
+        setUser(data);
+
+    } catch (error) {
+        console.error('Registration error:', error);
+        setRegisterError({
+            error: true,
+            message: error.message || 'Registration failed'
+        });
+    } finally {
         setIsRegisterLoading(false);
-
-        if (response.error) {
-            return setRegisterError(response);
-        };
-
-        localStorage.setItem("user", JSON.stringify(response));
-        setUser(response);
-    }, [registerInfo]);
-
+    }
+}, [registerInfo, baseUrl]);
     const loginUser = useCallback(async (e) => {
         e.preventDefault();
         setIsLoginLoading(true);

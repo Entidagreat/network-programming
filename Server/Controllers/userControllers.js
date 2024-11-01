@@ -2,36 +2,98 @@ const userModel = require("../Models/userModel");
 const jwt = require("jsonwebtoken");
 const validator = require("validator");
 const bcrypt = require("bcrypt");
-const chatModel = require("../Models/ChatModel");
+const   
+ chatModel = require("../Models/ChatModel");
 const messageModel = require("../Models/messageModel");
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+if (!fs.existsSync('assets')) {
+    fs.mkdirSync('assets');
+}
+
 const createToken = (_id) => {
     const jwtkey = process.env.JWT_SECRET_KEY;
 
     return jwt.sign({ _id }, jwtkey, { expiresIn: "3d" });
 };
 
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, path.join(__dirname, '../../client/src/assets/')); 
+    },
+    filename: (req, file, cb) => {
+        const filename = Date.now() + path.extname(file.originalname);
+        cb(null, filename);
+    }
+});
+
+const upload = multer({ 
+    storage: storage,
+    fileFilter: function (req, file,   
+ cb) {
+        // Accept images only
+        if (!file.originalname.match(/\.(jpg|JPG|jpeg|JPEG|png|PNG|gif|GIF)$/))   
+ {
+            return cb(new Error('Only image files are allowed!'), false);
+        }
+        cb(null, true);   
+ 
+    }
+}); 
+
 const registerUser = async (req, res) => {
     try {
+        console.log('Request body:', req.body);
+        console.log('Uploaded file:', req.file); 
+
         const { name, email, password, role, friends, groups } = req.body;
+
+        // Kiểm tra xem email đã tồn tại chưa
         let user = await userModel.findOne({ email });
         if (user) {
             return res.status(400).json("Người dùng đã tồn tại!");
-        };
-        if (!name || !email || !password) {
-            return res.status(400).json("Vui lòng nhập đầy đủ email và password");
-        };
-        if (!validator.isEmail(email)) return res.status(400).json("Email không khả dụng!");
+        }
 
-        // Hash the password
+        // Kiểm tra dữ liệu đầu vào
+        if (!name || !email || !password) {
+            return res.status(400).json("Vui lòng nhập đầy đủ thông tin");
+        }
+        if (!validator.isEmail(email)) {
+            return res.status(400).json("Email không hợp lệ");
+        }
+
+        // Mã hóa mật khẩu
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        user = new userModel({ name, email, password: hashedPassword, role, friends, groups });
+        // Tạo người dùng mới
+        user = new userModel({ 
+            name, 
+            email, 
+            password: hashedPassword, 
+            role, 
+            friends, 
+            groups,
+            avatar: req.file ? `${req.protocol}://${req.get('host')}/assets/${req.file.filename}` : null 
+        });
+
         await user.save();
         const token = createToken(user._id);
-        res.status(200).json({ _id: user._id, name, email, role, token });
+
+        res.status(200).json({ 
+            _id: user._id, 
+            name, 
+            email, 
+            role, 
+            token, 
+           avatar: req.file ? `${req.protocol}://${req.get('host')}/assets/${req.file.filename}` : null 
+
+        });
+
     } catch (error) {
-        console.log(error);
-        res.status(500).json("server error");
+        console.error('Lỗi đăng ký:', error); 
+        res.status(500).json("Lỗi server");
     }
 };
 const loginUser = async (req, res) => {
@@ -126,4 +188,12 @@ const searchUsersByName = async (req, res) => {
     }
 };
 
-module.exports = { registerUser, loginUser, findUser, getUsers, deleteUser, searchUsersByName, escapeRegExp };
+module.exports = { 
+    registerUser, 
+    loginUser, 
+    findUser, 
+    getUsers, 
+    deleteUser, 
+    searchUsersByName, 
+    upload // Export upload middleware
+  };

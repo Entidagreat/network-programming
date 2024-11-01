@@ -31,6 +31,7 @@ const UserChat = ({ chat, user }) => {
 
         return shortText;
     }
+    console.log("URL avatar:", recipientUser?.avatar); 
 
     return (
         <Stack
@@ -44,9 +45,15 @@ const UserChat = ({ chat, user }) => {
                 }
             }}
         >
-            <div className="d-flex">
-                <div className="me-2">
-                    <img src={avartar} height="35px" />
+           <div className="d-flex">
+           <div className="me-2">
+                    <img   
+
+                        src={recipientUser?.avatar || avartar}
+                        height="35px"
+                        alt={recipientUser?.name || "Người dùng"}
+                        onError={(e) => { e.target.onerror = null; e.target.src = avartar }} // Thêm xử lý lỗi ảnh
+                    />
                 </div>
                 <div className="text-content">
                     <div className="name">{recipientUser?.name}</div>

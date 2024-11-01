@@ -6,13 +6,12 @@ const userSchema = new mongoose.Schema({
     password: { type: String, required: true, minlength: 3, maxlength: 1024 },
     role: {
         type: String,
-        enum: ['user',
-            'high user', 'moderator'],
+        enum: ['user', 'high user', 'moderator'],
         default: 'user'
     },
     friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-
-    group: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Group' }], // New attribute
+    group: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Group' }],
+    avatar: { type: String }, // Add avatar field
 },
     { timestamps: true }
 );
