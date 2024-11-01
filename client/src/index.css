@@ -12,13 +12,13 @@ body{
 }
 
 .single-user {
-  background: rgb(0, 213, 255);
-  color: white;
-  cursor: pointer;
+  background: #e4c59e;
+  color:#e4c59e;
+  /* cursor: pointer;
   padding: 5px 7px;
   border-radius: 10px;
   margin-right: 0.5rem;
-  position: relative;
+  position: relative; */
 }
 
 /* User Card(list) */
@@ -212,7 +212,7 @@ body{
   right: -15px;
 }
 
-.this-user-notifications {
+/* .this-user-notifications {
   display: flex;
   background: #00bd9b;
   height: 20px;
@@ -222,7 +222,7 @@ body{
   border-radius: 50%;
   align-items: center;
   justify-content: center;
-}
+} */
 
 /* new */
 .translate-btn {
@@ -267,13 +267,13 @@ body{
 
 .chat-list {
   max-height: calc(100vh- 10rem);
-  width: 380px;
+  width: 390px;
   overflow-y: auto;
   background: #F9EFDB;
   border-radius: 10px;
-  min-width: 380px;
+  min-width: 390px;
 }
-.group-list {
+/* .group-list {
   max-height: calc(100vh - 10rem);
   overflow-y: auto;
   background: #F9EFDB;
@@ -297,4 +297,4 @@ body{
   background: #fff4ea;
   border-radius: 10px;
   padding: 1rem;
-}
+} */

@@ -1,7 +1,6 @@
 const chatModel = require("../Models/ChatModel");
 const userModel = require("../Models/userModel");
 //creatchat
-const chatModel = require("../Models/ChatModel");
 const createChat = async (req, res) => {
   const { firstId, secondId } = req.body;
 
