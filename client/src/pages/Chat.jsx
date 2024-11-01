@@ -47,7 +47,6 @@ const Chat = () => {
                   position: "sticky",
                   top: 0,
                   zIndex: 1,
-                  backgroundColor: "white",
                 }}
               >
                 <input
