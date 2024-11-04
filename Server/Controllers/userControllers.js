@@ -2,12 +2,19 @@ const userModel = require("../Models/userModel");
 const jwt = require("jsonwebtoken");
 const validator = require("validator");
 const bcrypt = require("bcrypt");
-const   
- chatModel = require("../Models/ChatModel");
+const chatModel = require("../Models/ChatModel");
 const messageModel = require("../Models/messageModel");
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+require('dotenv').config();
+console.log(process.env.CLOUDINARY_API_KEY);
+const cloudinary = require('cloudinary').v2;
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 if (!fs.existsSync('assets')) {
     fs.mkdirSync('assets');
@@ -19,29 +26,33 @@ const createToken = (_id) => {
     return jwt.sign({ _id }, jwtkey, { expiresIn: "3d" });
 };
 
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, path.join(__dirname, '../../client/src/assets/')); 
-    },
-    filename: (req, file, cb) => {
-        const filename = Date.now() + path.extname(file.originalname);
-        cb(null, filename);
-    }
-});
+const storage = multer.diskStorage({}); // Không cần lưu trữ file local
 
 const upload = multer({ 
-    storage: storage,
-    fileFilter: function (req, file,   
- cb) {
-        // Accept images only
-        if (!file.originalname.match(/\.(jpg|JPG|jpeg|JPEG|png|PNG|gif|GIF)$/))   
+  storage: storage,
+  fileFilter: function (req, file, cb) {
+    // Accept images only
+    if (!file.originalname.match(/\.(jpg|JPG|jpeg|JPEG|png|PNG|gif|GIF)$/))   
  {
-            return cb(new Error('Only image files are allowed!'), false);
-        }
-        cb(null, true);   
- 
+      return cb(new Error('Only image files are allowed!'), false);
     }
+    cb(null, true);   
+   
+  }
 }); 
+
+const uploadToCloudinary = async (file) => {
+  try {
+    const result = await cloudinary.uploader.upload(file.path, {
+        folder: 'home/avatar'
+        // Tùy chọn: lưu vào thư mục avatars
+    });
+    return result.secure_url; // Đường dẫn ảnh trên Cloudinary
+  } catch (error) {
+    console.error('Lỗi khi upload lên Cloudinary:', error);
+    throw error;
+  }
+};
 
 const registerUser = async (req, res) => {
     try {
@@ -66,7 +77,10 @@ const registerUser = async (req, res) => {
 
         // Mã hóa mật khẩu
         const hashedPassword = await bcrypt.hash(password, 10);
-
+        let avatarUrl = null;
+        if (req.file) {
+          avatarUrl = await uploadToCloudinary(req.file); // Upload lên Cloudinary
+        }
         // Tạo người dùng mới
         user = new userModel({ 
             name, 
@@ -75,27 +89,26 @@ const registerUser = async (req, res) => {
             role, 
             friends, 
             groups,
-            avatar: req.file ? `${req.protocol}://${req.get('host')}/assets/${req.file.filename}` : null 
-        });
-
-        await user.save();
-        const token = createToken(user._id);
-
-        res.status(200).json({ 
+            avatar: avatarUrl // Lưu đường dẫn Cloudinary vào database
+          });
+      
+          await user.save();
+          const token = createToken(user._id);
+      
+          res.status(200).json({ 
             _id: user._id, 
             name, 
             email, 
             role, 
             token, 
-           avatar: req.file ? `${req.protocol}://${req.get('host')}/assets/${req.file.filename}` : null 
-
-        });
-
-    } catch (error) {
-        console.error('Lỗi đăng ký:', error); 
-        res.status(500).json("Lỗi server");
-    }
-};
+            avatar: avatarUrl 
+          });
+      
+        } catch (error) {
+          console.error('Lỗi đăng ký:', error); 
+          res.status(500).json("Lỗi server");
+        }
+      };
 const loginUser = async (req, res) => {
     const { email, password } = req.body;
 
@@ -195,5 +208,6 @@ module.exports = {
     getUsers, 
     deleteUser, 
     searchUsersByName, 
-    upload // Export upload middleware
+    upload,
+    uploadToCloudinary, // Export upload middleware
   };

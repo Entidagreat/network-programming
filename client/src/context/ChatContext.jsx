@@ -11,7 +11,7 @@ export const ChatContextProvider = ({ children, user }) => {
     const [userChatsError, setUserChatsError] = useState(null);
     const [potentialChats, setPotentialChats] = useState([]);
     const [currentChat, setCurrentChat] = useState(null);
-    const [messages, setMessages] = useState(null);
+    const [messages, setMessages] = useState([]);
     const [isMessagesLoading, setIsMessagesLoading] = useState(false);
     const [messagesError, setMessagesError] = useState(null);
     const [sendTextMessageError, setSendTextMessageError] = useState(null);
@@ -58,21 +58,20 @@ export const ChatContextProvider = ({ children, user }) => {
         if (socket === null) return;
 
         socket.on("getMessage", (res) => {
-            if (currentChat?._id !== res.chatId) return
+            if (currentChat?._id !== res.chatId) return;
 
-            setMessages((prev) => [...prev, res]);
+            setMessages((prev) => Array.isArray(prev) ? [...prev, res] : [res]);
         });
 
         socket.on("getNotification", (res) => {
             const isChatOpen = currentChat?.members.some(id => id === res.senderId);
 
             if (isChatOpen) {
-                setNotifications(prev => [{ ...res, isRead: true }, ...prev]);
+                setNotifications(prev => Array.isArray(prev) ? [{ ...res, isRead: true }, ...prev] : [{ ...res, isRead: true }]);
             } else {
-                setNotifications(prev => [res, ...prev]);
+                setNotifications(prev => Array.isArray(prev) ? [res, ...prev] : [res]);
             }
         });
-
 
         return () => {
             socket.off("getMessage");
@@ -171,7 +170,7 @@ export const ChatContextProvider = ({ children, user }) => {
             }
 
             setNewMessage(response);
-            setMessages((prev) => [...prev, response]);
+            setMessages((prev) => Array.isArray(prev) ? [...prev, response] : [response]);
             setTextMessage("");
         },
         [currentChat]
@@ -196,7 +195,7 @@ export const ChatContextProvider = ({ children, user }) => {
             return console.log("Error creating chat", response);
         }
 
-        setUserChats((prev) => [...prev, response]);
+        setUserChats((prev) => Array.isArray(prev) ? [...prev, response] : [response]);
     }, []);
 
     const markAllNotificationsAsRead = useCallback((notifications) => {
