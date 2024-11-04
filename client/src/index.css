@@ -58,11 +58,21 @@ body{
 
 /* Chat Box */
 .chat-box {
-  max-height: calc(100vh - 10rem);
+  max-height: calc(110vh - 10rem);
   overflow-y: auto;
   background: #fff4ea;
   border-radius: 10px;
 }
+
+.chat-list {
+  max-height: calc(110vh- 10rem);
+  width: 390px;
+  overflow-y: auto;
+  background: #F9EFDB;
+  border-radius: 10px;
+  min-width: 390px;
+}
+
 
 .messages-box {
   height: 85vh;
@@ -265,14 +275,7 @@ body{
   background-color: #00bd9b;
 } */
 
-.chat-list {
-  max-height: calc(100vh- 10rem);
-  width: 390px;
-  overflow-y: auto;
-  background: #F9EFDB;
-  border-radius: 10px;
-  min-width: 390px;
-}
+
 /* .group-list {
   max-height: calc(100vh - 10rem);
   overflow-y: auto;
