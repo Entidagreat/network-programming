@@ -53,7 +53,9 @@ const UserChat = ({ chat, user }) => {
            <div className="me-2">
            <img 
   src={recipientUser?.avatar || avartar} 
-  height="35px" 
+  height="35px"
+  width="35px"
+  style={{ borderRadius: "50%" }}
   alt={recipientUser?.name || "Người dùng"} 
   onError={(e) => { e.target.onerror = null; e.target.src = avartar }} 
 />
