@@ -1,0 +1,143 @@
+[data-theme='dark'] {
+    background: #000000;
+    color: #ffffff;
+  }
+  
+  [data-theme='dark'] .chat-box {
+    background: #121212;
+  }
+  
+  [data-theme='dark'] .chat-list {
+    background: #191919;
+  }
+  
+  [data-theme='dark'] .chat-header {
+    background: #363636;
+    color: #ffffff;
+  }
+  
+  [data-theme='dark'] .message {
+    color:  #fff8dc;
+    background: #333333;
+    padding: 0.75rem;
+    border-radius: 5px;
+    max-width: 50%;
+    text-align: left;
+    text-align: justify;
+  }
+  [data-theme='dark'] .message.self {
+    background: #bb86fc;
+  }
+  
+  [data-theme='dark'] .chat-input {
+    background: #2d2d2d;
+  }
+  
+  [data-theme='dark'] .notifications-box {
+    background: #2d2d2d;
+  }
+  
+  [data-theme='dark'] .notification.not-read {
+    background: #392467;
+  }
+  
+  [data-theme='dark'] .user-card {
+    color: #ffffff;
+    border-bottom: 1px solid #666666;
+  }
+  
+  [data-theme='dark'] .user-card .text,
+  [data-theme='dark'] .user-card .date {
+    color: #ffffff;
+  }
+  [data-theme='dark'] .navbar-custom {
+    background-color: #363636;
+    height: 3.75rem;
+  }
+  [data-theme='dark'] .single-user {
+    color:#000000;
+    background-color: #000000;
+  }
+[data-theme='dark'] .message-footer {
+        font-size: 12px;
+        align-self: flex-end;
+        font-weight: 400;
+        position: absolute; /* Thêm thuộc tính này để đảm bảo vị trí tuyệt đối */
+        right: 0; /* Căn phải */
+        bottom: -10px; /* Khoảng cách so với đáy của message-content */
+        text-align: right; /* Căn phải cho nội dung bên trong */
+        min-width: 150px;
+        color: white;
+      }
+      
+        [data-theme='dark'] .send-btn {
+            border: none;
+            background: #bb86fc;
+            color: #ffffff;
+            height: 40px;
+            width: 40px;
+            border-radius: 50%;
+          }
+    
+            [data-theme='dark'] .translate-btn {
+                color: #ffffff; /* Màu chữ là trắng */
+                background-color: transparent; /* Nền trong suốt */
+                border: none; /* Bỏ viền */
+                outline: none; /* Bỏ viền ngoài khi nhấn */
+                padding: 0; /* Bỏ khoảng cách bên trong nếu có */
+                cursor: pointer; /* Đổi con trỏ khi hover qua nút */
+                font-size: inherit; /* Kế thừa kích thước chữ từ phần tử cha */
+              }
+    
+              [data-theme='dark'] .translated-text{
+                display:block;
+                margin-top: 1.5px;
+                color: white;
+                opacity: 1;
+              }
+
+                [data-theme='dark'] .hr{
+                    border-top: white 5px solid;
+                }
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+[data-theme='dark'] .theme-switch {
+  animation: pulse 0.5s ease-in-out;
+}
+[data-theme='dark'] .notification-count {
+    display: flex;
+    background: #22DD22;
+    height: 25px;
+    width: 25px;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: -10px;
+    right: -15px;
+  }
+
+  [data-theme='dark'] .user-online {
+    display: inline-block;
+    height: 12px;
+    width: 12px;
+    border-radius: 50%;
+    background: #22DD22;
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    z-index: 2;
+  }
+  

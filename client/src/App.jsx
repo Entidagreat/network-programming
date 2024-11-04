@@ -9,12 +9,14 @@ import { useContext } from "react";
 import { AuthContext } from "./context/AuthContext";
 import { ChatContextProvider } from "./context/ChatContext";
 import { LanguageProvider } from "./context/LanguageContext";
+import { ThemeProvider } from "./context/ThemeContext";
 
 function App() {
   const { user } = useContext(AuthContext);
   return (
-    <LanguageProvider>
+    <ThemeProvider>
 
+    <LanguageProvider>
     <ChatContextProvider user={user}>
       <NavBar />
       <Container>
@@ -27,6 +29,7 @@ function App() {
       </Container>
     </ChatContextProvider>
     </LanguageProvider>
+    </ThemeProvider>
   );
 }
 

@@ -58,15 +58,15 @@ body{
 
 /* Chat Box */
 .chat-box {
-  max-height: calc(110vh - 10rem);
+  max-height: calc(100vh - 10rem);
   overflow-y: auto;
   background: #fff4ea;
   border-radius: 10px;
 }
 
 .chat-list {
-  max-height: calc(110vh- 10rem);
-  width: 390px;
+  max-height: calc(100vh- 10rem);
+  width: 380px;
   overflow-y: auto;
   background: #F9EFDB;
   border-radius: 10px;
@@ -301,3 +301,10 @@ body{
   border-radius: 10px;
   padding: 1rem;
 } */
+.navbar-custom {
+  background-color: #af8260;
+  height: 3.75rem;
+}
+#theme-switch {
+  transition: all 0.3s ease;
+}

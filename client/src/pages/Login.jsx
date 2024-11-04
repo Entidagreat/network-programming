@@ -54,10 +54,14 @@ const Login = () => {
                             onChange={(e) => updateLoginInfo({ 
                                 ...loginInfo, 
                                 password: e.target.value 
-                            })}
+                            })} 
                         />
 
-                        <Button variant="primary" type="submit">
+                        <Button 
+                            variant="primary" 
+                            type="submit"
+                            style={{ backgroundColor: '#4793AF' }} 
+                        >
                             {isLoginLoading ? t.login.loading : t.login.button}
                         </Button>
 
