@@ -4,22 +4,35 @@ import { AuthContext } from "../../context/AuthContext";
 import { ChatContext } from "../../context/ChatContext";
 import { useFetchRecipientUser } from "../../hooks/useFetchRecipient";
 import moment from "moment";
+import 'moment/locale/vi';
 import InputEmoji from "react-input-emoji";
-import { translateText } from "../../utils/translate";
+import { translateToEnglish, translateToVietnamese } from "../../utils/translate";
 import he from "he";
+import { useLanguage } from "../../context/LanguageContext";
+import { translations } from "../../utils/translations";
 
 const ChatBox = () => {
   const { user } = useContext(AuthContext);
   const { currentChat, messages, isMessagesLoading, sendTextMessage } = useContext(ChatContext);
   const { recipientUser } = useFetchRecipientUser(currentChat, user);
   const [textMessage, setTextMessage] = useState("");
-  const [translations, setTranslations] = useState({});
-  const [hoveredMessageId, setHoveredMessageId] = useState(null); // Thay đổi trạng thái để theo dõi ID tin nhắn
+  const [translatedMessages, setTranslatedMessages] = useState({}); // Đổi tên biến trạng thái
+  const [hoveredMessageId, setHoveredMessageId] = useState(null);
   const scroll = useRef();
+  const { language } = useLanguage();
+  const t = translations[language]; // Sử dụng translations từ utils/translations
 
+
+  useEffect(() => {
+    if (language === 'vn') {
+      moment.locale('vi');
+    } else {
+      moment.locale('en'); // Default to English or any other default language
+    }
+  }, [language]);
   // Xóa bản dịch khi chuyển đổi cuộc hội thoại
   useEffect(() => {
-    setTranslations({});
+    setTranslatedMessages({});
   }, [currentChat]);
 
   useEffect(() => {
@@ -34,13 +47,24 @@ const ChatBox = () => {
 
   const handleTranslate = async (message) => {
     try {
-      const translatedText = await translateText(message.text, 'en');
-      const decodedText = he.decode(translatedText); // Giải mã nội dung
-      setTranslations(prev => ({ ...prev, [message._id]: decodedText }));
+        if (translatedMessages[message._id]) {
+            return; // Nếu đã dịch rồi thì không cần dịch lại
+        }
+
+        let translatedText;
+        if (language === 'en') {
+            translatedText = await translateToEnglish(message.text);
+        } else if (language === 'vn') {
+            translatedText = await translateToVietnamese(message.text);
+        }
+
+        const decodedText = he.decode(translatedText);
+        setTranslatedMessages(prev => ({ ...prev, [message._id]: decodedText }));
     } catch (error) {
-      console.error("Error translating message:", error);
+        console.error("Error translating message:", error);
     }
-  };
+};
+
 
   if (!user) {
     return <p style={{ textAlign: "center", width: "100%" }}>Loading user...</p>;
@@ -49,7 +73,7 @@ const ChatBox = () => {
   if (!recipientUser) {
     return (
       <p style={{ textAlign: "center", width: "100%" }}>
-        No conversation selected yet...
+        {t.ChatBox.noConversation}
       </p>
     );
   }
@@ -80,13 +104,12 @@ const ChatBox = () => {
             >
               <div className="message-content" style={{ position: 'relative', flexGrow: 1 }}>
                 <span>{message.text}</span>
-                {translations[message._id] && (
+                {translatedMessages[message._id] && (
                   <>
                     <hr style={{ margin: "8px 0", border: "2px solid #ccc" }} />
-                    <span className="translated-text">{translations[message._id]}</span>
+                    <span className="translated-text">{translatedMessages[message._id]}</span>
                   </>
                 )}
-                {/* Hiển thị thời gian chỉ cho tin nhắn đang hover */}
                 {hoveredMessageId === message._id && (
                   <span
                     className="message-footer"
@@ -98,18 +121,17 @@ const ChatBox = () => {
                       textAlign: message.senderId === user?._id ? 'right' : 'left',
                     }}
                   >
-                    {moment(message.createdAt).calendar()}
+                     {moment(message.createdAt).calendar()}
                   </span>
                 )}
               </div>
 
-              {/* Đặt nút dịch ở bên ngoài message-content */}
               {message.senderId !== user?._id && (
                 <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
                   <button
                     className="translate-btn"
                     onClick={() => handleTranslate(message)}
-                    style={{ position: "absolute", left: "25px" }} // Thay đổi ở đây
+                    style={{ position: "absolute", left: "25px" }}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -126,9 +148,7 @@ const ChatBox = () => {
                 </div>
               )}
             </Stack>
-
           ))}
-
       </Stack>
 
       <Stack direction="horizontal" gap={3} className="chat-input flex-grow-0">

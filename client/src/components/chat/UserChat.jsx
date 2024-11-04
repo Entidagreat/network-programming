@@ -6,12 +6,16 @@ import { ChatContext } from "../../context/ChatContext";
 import { unreadNotificationsFunc } from "../../utils/unreadNotifications";
 import { useFetchLatestMessage } from "../../hooks/useFetchMessage";
 import moment from "moment";
+import { useLanguage } from "../../context/LanguageContext";
+import { translations } from "../../utils/translations";
 
 const UserChat = ({ chat, user }) => {
     const { recipientUser } = useFetchRecipientUser(chat, user);
     const { onlineUsers, notifications, markThisUserNotificationsAsRead } =
         useContext(ChatContext);
     const { latestMessage } = useFetchLatestMessage(chat);
+    const { language } = useLanguage();
+    const t = translations[language];
 
 
     const unreadNotifications = unreadNotificationsFunc(notifications);

@@ -3,6 +3,9 @@ import { ChatContext } from "../../context/ChatContext";
 import { AuthContext } from "../../context/AuthContext";
 import { unreadNotificationsFunc } from "../../utils/unreadNotifications";
 import moment from "moment";
+import "moment/locale/vi";
+import { useLanguage } from "../../context/LanguageContext";
+import { translations } from "../../utils/translations";
 
 const Notification = () => {
 
@@ -10,8 +13,13 @@ const Notification = () => {
     const { user } = useContext(AuthContext);
     const { notifications, userChats, allUsers, markAllNotificationsAsRead, markAllNotificationAsRead } =
         useContext(ChatContext);
+    
 
     const unreadNotifications = unreadNotificationsFunc(notifications);
+
+    const { language } = useLanguage();
+    const t = translations[language]; // Sử dụng translations từ utils/translations
+    
     const modifiedNotifications = notifications.map((n) => {
         const sender = allUsers.find(user => user._id === n.senderId);
 
@@ -24,6 +32,11 @@ const Notification = () => {
     console.log("un", unreadNotifications);
     console.log("mn", modifiedNotifications);
 
+    if (language === 'vn') {
+        moment.locale('vi');
+      } else {
+        moment.locale('en');
+      }
 
 
     return (
@@ -49,15 +62,15 @@ const Notification = () => {
             {isOpen ? (
                 <div className="notifications-box">
                     <div className="notifications-header">
-                        <h3>Notifications</h3>
+                        <h3>{t.Notification.Tag}</h3>
                         <div
                             className="mark-as-read"
                             onClick={() => markAllNotificationsAsRead(notifications)}
                         >
-                            Mark all as read
+                           {t.Notification.mark}
                         </div>
                     </div>
-                    {modifiedNotifications?.length === 0 ? <span className="notification">No notifications</span> : null}
+                    {modifiedNotifications?.length === 0 ? <span className="notification">{t.Notification.noNotification}</span> : null}
                     {modifiedNotifications && modifiedNotifications.map((n, index) => {
                         return (
                             <div key={index}
