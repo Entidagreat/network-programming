@@ -5,6 +5,8 @@ import { AuthContext } from "../context/AuthContext";
 import { ChatContext } from "../context/ChatContext";
 import PotentialChats from "../components/chat/PotentialChats";
 import ChatBox from "../components/chat/ChatBox";
+import { useLanguage } from "../context/LanguageContext";
+import { translations } from "../utils/translations";
 
 
 const Chat = () => {
@@ -13,6 +15,8 @@ const Chat = () => {
     useContext(ChatContext);
   const [refresh, setRefresh] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const { language } = useLanguage();
+  const t = translations[language];
 
   // Lọc danh sách chat để loại bỏ các chat trùng lặp
   const filteredChatList = userChats?.reduce((acc, current) => {
@@ -51,13 +55,13 @@ const Chat = () => {
               >
                 <input
                   type="text"
-                  placeholder="Search conversation"
+                  placeholder={t.chat.searchPlaceholder}
                   className="form-control mb-3"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>}
-              {isUserChatsLoading && <p>Loading chats...</p>}
+              {isUserChatsLoading && <p> {t.chat.loading} </p>}
               {filteredChatList?.map((chat) => {
                 // Sử dụng filteredChatList thay vì userChats
                 const recipientId = chat.members.find((id) => id !== user._id);

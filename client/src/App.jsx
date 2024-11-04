@@ -8,10 +8,13 @@ import Register from "./pages/Register";
 import { useContext } from "react";
 import { AuthContext } from "./context/AuthContext";
 import { ChatContextProvider } from "./context/ChatContext";
+import { LanguageProvider } from "./context/LanguageContext";
 
 function App() {
   const { user } = useContext(AuthContext);
   return (
+    <LanguageProvider>
+
     <ChatContextProvider user={user}>
       <NavBar />
       <Container>
@@ -23,6 +26,7 @@ function App() {
         </Routes>
       </Container>
     </ChatContextProvider>
+    </LanguageProvider>
   );
 }
 

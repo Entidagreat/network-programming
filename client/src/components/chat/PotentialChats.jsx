@@ -2,6 +2,8 @@ import { useContext, useCallback, useEffect } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { ChatContext } from "../../context/ChatContext";
 import axios from "axios";
+import { useLanguage } from "../../context/LanguageContext";
+import { translations } from "../../utils/translations";
 
 const PotentialChats = ({ setRefresh }) => {
   const { user } = useContext(AuthContext);
@@ -12,6 +14,8 @@ const PotentialChats = ({ setRefresh }) => {
     setPotentialChats,
     updateUserChats,
   } = useContext(ChatContext);
+  const { language} = useLanguage();
+  const t = translations[language];
 
   const deleteUser = useCallback(
     async (userId) => {
