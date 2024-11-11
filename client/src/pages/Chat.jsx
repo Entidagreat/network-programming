@@ -33,7 +33,10 @@ const Chat = () => {
   const filteredUsers = allUsers.filter((user) =>
     user.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
+  const handleCreateGroup = async (groupName) => {
+    const newGroup = await createChat(user._id, null, true, groupName);
+    updateCurrentChat(newGroup);
+  };
   return (
     <Container>
       <PotentialChats

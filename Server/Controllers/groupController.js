@@ -6,26 +6,40 @@ const Message = require('../Models/messageModel');
 const createGroup = async (req, res) => {
     const { name, members } = req.body;
 
-    // Validate dữ liệu đầu vào
+    // Validate input
     if (!name || !members || !Array.isArray(members) || members.length === 0) {
         return res.status(400).json({ message: 'Invalid input data' });
     }
 
     try {
+        // Fetch all user details for members
+        const users = await User.find({ _id: { $in: members } });
+        
+        // Map members with their names
+        const membersWithNames = users.map(user => ({
+            user: user._id,
+            role: 'member',
+            userName: user.name // Add user name
+        }));
+
         const group = new Group({
             name,
-            members: members.map(member => ({ user: member, role: 'member' })),
+            members: membersWithNames,
         });
 
         const savedGroup = await group.save();
 
-        // Cập nhật thuộc tính group của tất cả người dùng trong nhóm (sử dụng cập nhật hàng loạt)
+        // Update group reference for all members
         await User.updateMany(
             { _id: { $in: members } },
             { $push: { group: savedGroup._id } }
         );
 
-        res.status(200).json(savedGroup);
+        // Return populated group data
+        const populatedGroup = await Group.findById(savedGroup._id)
+            .populate('members.user', 'name email');
+
+        res.status(200).json(populatedGroup);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });

@@ -1,8 +1,10 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { Stack } from "react-bootstrap";
 import { AuthContext } from "../../context/AuthContext";
-import { ChatContext } from "../../context/ChatContext";
-import { useFetchRecipientUser } from "../../hooks/useFetchRecipient";
+import { ChatContext   
+ } from "../../context/ChatContext";
+import { useFetchRecipientUser } from "../../hooks/useFetchRecipient";   
+ // Giữ lại hook này
 import moment from "moment";
 import 'moment/locale/vi';
 import InputEmoji from "react-input-emoji";
@@ -14,23 +16,23 @@ import { translations } from "../../utils/translations";
 const ChatBox = () => {
   const { user } = useContext(AuthContext);
   const { currentChat, messages, isMessagesLoading, sendTextMessage } = useContext(ChatContext);
-  const { recipientUser } = useFetchRecipientUser(currentChat, user);
+  const { recipientUser } = useFetchRecipientUser(currentChat,   
+ user); // Sử dụng hook
   const [textMessage, setTextMessage] = useState("");
-  const [translatedMessages, setTranslatedMessages] = useState({}); // Đổi tên biến trạng thái
+  const [translatedMessages, setTranslatedMessages] = useState({});
   const [hoveredMessageId, setHoveredMessageId] = useState(null);
   const scroll = useRef();
   const { language } = useLanguage();
-  const t = translations[language]; // Sử dụng translations từ utils/translations
-
+  const t = translations[language];
 
   useEffect(() => {
     if (language === 'vn') {
       moment.locale('vi');
     } else {
-      moment.locale('en'); // Default to English or any other default language
+      moment.locale('en');
     }
   }, [language]);
-  // Xóa bản dịch khi chuyển đổi cuộc hội thoại
+
   useEffect(() => {
     setTranslatedMessages({});
   }, [currentChat]);
@@ -41,36 +43,44 @@ const ChatBox = () => {
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
-      sendTextMessage(textMessage, user, currentChat._id, setTextMessage);
+      // Kiểm tra xem đang chat trong nhóm hay chat riêng
+      if (currentChat?.isGroup) {
+        sendTextMessage(textMessage, user, currentChat._id, setTextMessage, true); 
+      } else {
+        sendTextMessage(textMessage, user, currentChat._id, setTextMessage);
+      }
     }
   };
-
+  useEffect(() => {
+    console.log('currentChat:', currentChat);
+    console.log('message:', messages);
+    console.log('member:', currentChat?.members);
+  }, [currentChat, messages]);
   const handleTranslate = async (message) => {
     try {
-        if (translatedMessages[message._id]) {
-            return; // Nếu đã dịch rồi thì không cần dịch lại
-        }
+      if (translatedMessages[message._id]) {
+        return; // Nếu đã dịch rồi thì không cần dịch lại
+      }
 
-        let translatedText;
-        if (language === 'en') {
-            translatedText = await translateToEnglish(message.text);
-        } else if (language === 'vn') {
-            translatedText = await translateToVietnamese(message.text);
-        }
+      let translatedText;
+      if (language === 'en') {
+        translatedText = await translateToEnglish(message.text);
+      } else if (language === 'vn') {
+        translatedText = await translateToVietnamese(message.text);
+      }
 
-        const decodedText = he.decode(translatedText);
-        setTranslatedMessages(prev => ({ ...prev, [message._id]: decodedText }));
+      const decodedText = he.decode(translatedText);
+      setTranslatedMessages(prev => ({ ...prev, [message._id]: decodedText }));
     } catch (error) {
-        console.error("Error translating message:", error);
+      console.error("Error translating message:", error);
     }
-};
-
+  };
 
   if (!user) {
     return <p style={{ textAlign: "center", width: "100%" }}>Loading user...</p>;
   }
 
-  if (!recipientUser) {
+  if (!currentChat) { 
     return (
       <p style={{ textAlign: "center", width: "100%" }}>
         {t.ChatBox.noConversation}
@@ -84,47 +94,67 @@ const ChatBox = () => {
 
   return (
     <Stack gap={4} className="chat-box">
-      <div className="chat-header">
-        <strong>{recipientUser?.name}</strong>
+      <div className="chat-header">   
+
+        {/* Hiển thị tên nhóm hoặc tên người nhận */}
+        <strong>
+          {currentChat?.isGroup 
+            ? currentChat.name 
+            : recipientUser?.name // Sử dụng recipientUser.name
+          }
+        </strong> 
       </div>
       <Stack gap={3} className="messages">
-        {messages &&
-          messages.map((message, index) => (
-            <Stack
-              key={index}
-              className={`${message?.senderId === user?._id
-                ? "message self align-self-end flex-grow-0"
-                : "message align-self-start flex-grow-0"
-                } message-container`}
-              direction="horizontal"
-              gap={2}
-              ref={scroll}
-              onMouseEnter={() => setHoveredMessageId(message._id)}
-              onMouseLeave={() => setHoveredMessageId(null)}
-            >
-              <div className="message-content" style={{ position: 'relative', flexGrow: 1 }}>
-                <span>{message.text}</span>
-                {translatedMessages[message._id] && (
-                  <>
-                    <hr style={{ margin: "8px 0", border: "2px solid #ccc" }} />
-                    <span className="translated-text">{translatedMessages[message._id]}</span>
-                  </>
-                )}
-                {hoveredMessageId === message._id && (
-                  <span
-                    className="message-footer"
-                    style={{
-                      position: 'absolute',
-                      bottom: '-32px',
-                      right: message.senderId === user?._id ? '0' : 'auto',
-                      left: message.senderId !== user?._id ? '0' : 'auto',
-                      textAlign: message.senderId === user?._id ? 'right' : 'left',
-                    }}
-                  >
-                     {moment(message.createdAt).calendar()}
-                  </span>
-                )}
-              </div>
+        {messages && messages.map((message, index) => (
+          <Stack
+            key={index}
+            className={`${message?.senderId === user?._id
+              ? "message self align-self-end flex-grow-0"
+              : "message align-self-start flex-grow-0"   
+
+              } message-container`}
+            direction="horizontal"
+            gap={2}
+            ref={scroll}
+            onMouseEnter={() => setHoveredMessageId(message._id)}
+            onMouseLeave={() => setHoveredMessageId(null)}
+          >
+         <div className="message-content" style={{ position: 'relative', flexGrow: 1 }}>
+  <span className="sender-name">
+    {currentChat?.isGroup ? (
+      // For group chat, find member by senderId and show their username
+      currentChat.members?.find(member => 
+        member.user === message?.senderId
+      )?.username || 'Unknown User'
+    ) : (
+      // For direct chat, keep existing logic
+      message?.senderId === user?._id ? 
+        user?.name : 
+        recipientUser?.name || 'Unknown User'
+    )}
+  </span>
+  <span>{message?.text}</span>
+  {translatedMessages[message?._id] && (
+    <>
+      <hr style={{ margin: "8px 0", border: "2px solid #ccc" }} />
+      <span className="translated-text">{translatedMessages[message._id]}</span>
+    </>
+  )}
+              {hoveredMessageId === message._id && (
+                <span
+                  className="message-footer"
+                  style={{
+                    position: 'absolute',
+                    bottom: '-32px',
+                    right: message.senderId === user?._id ? '0' : 'auto',
+                    left: message.senderId !== user?._id ? '0' : 'auto',
+                    textAlign: message.senderId === user?._id ? 'right' : 'left',
+                  }}
+                >
+                  {moment(message.createdAt).calendar()}
+                </span>
+              )}
+            </div>
 
               {message.senderId !== user?._id && (
                 <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>

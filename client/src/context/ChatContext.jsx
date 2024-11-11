@@ -52,6 +52,7 @@ export const ChatContextProvider = ({ children, user }) => {
 
         socket.emit("sendMessage", { ...newMessage, recipientId });
     }, [newMessage]);
+
     const sendMessage = (receiverId, text) => {
         if (socket === null) return;
         socket.emit("sendMessage", {
@@ -60,6 +61,7 @@ export const ChatContextProvider = ({ children, user }) => {
             text,
         });
     };
+
     const sendGroupMessage = (groupId, text) => {
         if (socket === null) return;
         socket.emit("sendGroupMessage", {
@@ -68,12 +70,19 @@ export const ChatContextProvider = ({ children, user }) => {
             text,
         });
     };
+
     // receive message and notification
     useEffect(() => {
         if (socket === null) return;
 
         socket.on("getMessage", (res) => {
             if (currentChat?._id !== res.chatId) return;
+
+            setMessages((prev) => Array.isArray(prev) ? [...prev, res] : [res]);
+        });
+
+        socket.on("getGroupMessage", (res) => {
+            if (currentChat?._id !== res.groupId) return;
 
             setMessages((prev) => Array.isArray(prev) ? [...prev, res] : [res]);
         });
@@ -90,6 +99,7 @@ export const ChatContextProvider = ({ children, user }) => {
 
         return () => {
             socket.off("getMessage");
+            socket.off("getGroupMessage");
             socket.off("getNotification");
         };
     }, [socket, currentChat]);
@@ -129,7 +139,6 @@ export const ChatContextProvider = ({ children, user }) => {
                 setIsUserChatsLoading(true);
                 setUserChatsError(null);
 
-
                 const response = await getRequest(`${baseUrl}/chats/${user?._id}`);
 
                 setIsUserChatsLoading(false);
@@ -166,6 +175,7 @@ export const ChatContextProvider = ({ children, user }) => {
 
         getMessages();
     }, [currentChat]);
+
     useEffect(() => {
         if (socket === null) return;
         socket.on("getMessage", (message) => {
@@ -185,6 +195,7 @@ export const ChatContextProvider = ({ children, user }) => {
             socket.off("getGroupMessage");
         };
     }, [socket]);
+
     const sendTextMessage = useCallback(
         async (textMessage, sender, currentChatId, setTextMessage) => {
             if (!textMessage) return console.log("You must type a message");
@@ -195,7 +206,7 @@ export const ChatContextProvider = ({ children, user }) => {
                     chatId: currentChatId,
                     senderId: sender._id,
                     text: textMessage,
-                    isGroupMessage: currentChat.isGroupChat,
+                    isGroupMessage: currentChat.isGroup,
                 })
             );
             if (response.error) {
@@ -212,37 +223,40 @@ export const ChatContextProvider = ({ children, user }) => {
     const updateCurrentChat = useCallback((chat) => {
         setCurrentChat(chat);
     }, []);
+
     const createChat = useCallback(async (firstId, secondId, isGroupChat = false, groupName = '') => {
+        // console.log("createChat called with:", { firstId, secondId, isGroupChat, groupName });
+
         let endpoint = `${baseUrl}/chats`;
         let requestBody;
-      
+
         if (isGroupChat) {
-          const members = Array.isArray(secondId) ? secondId : [secondId]; 
-      
-          endpoint = `${baseUrl}/groups`;
-          requestBody = {
-            name: groupName, // Sử dụng "name" thay vì "groupName"
-            members: members.map(member => ({ user: member, role: 'member' })), // Định dạng members theo yêu cầu của API
-          };
-      
-          console.log("Creating a group chat with the following details:", requestBody);
+            const members = Array.isArray(secondId) ? secondId : [secondId];
+
+            endpoint = `${baseUrl}/groups`;
+            requestBody = {
+                name: groupName,
+                members: members.map(member => ({ user: member, role: 'member' })),
+            };
+
+            console.log("Creating a group chat with the following details:", requestBody);
         } else {
-          requestBody = {
-            firstId,
-            secondId,
-          };
-      
-        //   console.log("Creating a personal chat with the following details:", requestBody);
+            requestBody = {
+                firstId,
+                secondId,
+            };
+
+            // console.log("Creating a personal chat with the following details:", requestBody);
         }
-      
+
         const response = await postRequest(endpoint, JSON.stringify(requestBody));
-      
+
         if (response.error) {
-          return console.log("Error creating chat", response);
+            return console.log("Error creating chat", response);
         }
-      
+
         setUserChats((prev) => Array.isArray(prev) ? [...prev, response] : [response]);
-      }, []);
+    }, []);
 
     const markAllNotificationsAsRead = useCallback((notifications) => {
         const mNotification = notifications.map((n) => {
@@ -280,7 +294,6 @@ export const ChatContextProvider = ({ children, user }) => {
         },
         []
     );
-
 
     const updateUserChats = useCallback(async () => {
         if (user?._id) {
