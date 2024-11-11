@@ -21,21 +21,21 @@ export const ChatContextProvider = ({ children, user }) => {
     const [notifications, setNotifications] = useState([]);
     const [allUsers, setAllUsers] = useState([]);
 
-    //console.log("onlineUsers", onlineUsers);
-    console.log("notifications", notifications);
+    // console.log("onlineUsers", onlineUsers);
+    // console.log("notifications", notifications);
 
+    //CLIENT SIDE SOCKET
     useEffect(() => {
         const newSocket = io("http://localhost:3000");
         setSocket(newSocket);
-
+    
         return () => {
             newSocket.disconnect();
         };
     }, [user]);
-
-    //add online user
+    
     useEffect(() => {
-        if (socket === null) return
+        if (socket === null) return;
         socket.emit("addNewUser", user?._id);
         socket.on("getOnlineUsers", (res) => {
             setOnlineUsers(res);
@@ -52,7 +52,22 @@ export const ChatContextProvider = ({ children, user }) => {
 
         socket.emit("sendMessage", { ...newMessage, recipientId });
     }, [newMessage]);
-
+    const sendMessage = (receiverId, text) => {
+        if (socket === null) return;
+        socket.emit("sendMessage", {
+            senderId: user._id,
+            receiverId,
+            text,
+        });
+    };
+    const sendGroupMessage = (groupId, text) => {
+        if (socket === null) return;
+        socket.emit("sendGroupMessage", {
+            senderId: user._id,
+            groupId,
+            text,
+        });
+    };
     // receive message and notification
     useEffect(() => {
         if (socket === null) return;
@@ -151,7 +166,25 @@ export const ChatContextProvider = ({ children, user }) => {
 
         getMessages();
     }, [currentChat]);
+    useEffect(() => {
+        if (socket === null) return;
+        socket.on("getMessage", (message) => {
+            // Xử lý tin nhắn nhận được
+            console.log("Received message:", message);
+            // Cập nhật giao diện người dùng với tin nhắn mới
+        });
 
+        socket.on("getGroupMessage", (message) => {
+            // Xử lý tin nhắn nhóm nhận được
+            console.log("Received group message:", message);
+            // Cập nhật giao diện người dùng với tin nhắn nhóm mới
+        });
+
+        return () => {
+            socket.off("getMessage");
+            socket.off("getGroupMessage");
+        };
+    }, [socket]);
     const sendTextMessage = useCallback(
         async (textMessage, sender, currentChatId, setTextMessage) => {
             if (!textMessage) return console.log("You must type a message");
@@ -179,24 +212,37 @@ export const ChatContextProvider = ({ children, user }) => {
     const updateCurrentChat = useCallback((chat) => {
         setCurrentChat(chat);
     }, []);
-
     const createChat = useCallback(async (firstId, secondId, isGroupChat = false, groupName = '') => {
-        const response = await postRequest(
-            `${baseUrl}/chats`,
-            JSON.stringify({
-                firstId,
-                secondId,
-                isGroupChat,
-                groupName,
-            })
-        );
-
-        if (response.error) {
-            return console.log("Error creating chat", response);
+        let endpoint = `${baseUrl}/chats`;
+        let requestBody;
+      
+        if (isGroupChat) {
+          const members = Array.isArray(secondId) ? secondId : [secondId]; 
+      
+          endpoint = `${baseUrl}/groups`;
+          requestBody = {
+            name: groupName, // Sử dụng "name" thay vì "groupName"
+            members: members.map(member => ({ user: member, role: 'member' })), // Định dạng members theo yêu cầu của API
+          };
+      
+          console.log("Creating a group chat with the following details:", requestBody);
+        } else {
+          requestBody = {
+            firstId,
+            secondId,
+          };
+      
+        //   console.log("Creating a personal chat with the following details:", requestBody);
         }
-
+      
+        const response = await postRequest(endpoint, JSON.stringify(requestBody));
+      
+        if (response.error) {
+          return console.log("Error creating chat", response);
+        }
+      
         setUserChats((prev) => Array.isArray(prev) ? [...prev, response] : [response]);
-    }, []);
+      }, []);
 
     const markAllNotificationsAsRead = useCallback((notifications) => {
         const mNotification = notifications.map((n) => {
@@ -289,6 +335,8 @@ export const ChatContextProvider = ({ children, user }) => {
                 markAllNotificationAsRead,
                 markThisUserNotificationsAsRead,
                 updateUserChats,
+                sendMessage,
+                sendGroupMessage,
             }}
         >
             {children}

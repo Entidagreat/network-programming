@@ -1,9 +1,10 @@
-import { useContext, useCallback, useEffect } from "react";
+import { useContext, useCallback, useEffect, useState, useMemo } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { ChatContext } from "../../context/ChatContext";
 import axios from "axios";
 import { useLanguage } from "../../context/LanguageContext";
 import { translations } from "../../utils/translations";
+import { baseUrl, getRequest } from "../../utils/services";
 
 const PotentialChats = ({ setRefresh }) => {
   const { user } = useContext(AuthContext);
@@ -13,27 +14,29 @@ const PotentialChats = ({ setRefresh }) => {
     onlineUsers,
     setPotentialChats,
     updateUserChats,
+    updateCurrentChat,
   } = useContext(ChatContext);
-  const { language} = useLanguage();
+  const { language } = useLanguage();
   const t = translations[language];
+  const [groups, setGroups] = useState([]);
 
-  const deleteUser = useCallback(
-    async (userId) => {
-      try {
-        await axios.delete(`/api/users/${userId}`);
-        const updatedPotentialChats = potentialChats.filter(
-          (u) => u._id !== userId
-        );
-        setPotentialChats(updatedPotentialChats);
-        updateUserChats();
-      } catch (error) {
-        console.error("Lỗi khi xóa người dùng:", error);
-      }
-    },
-    [potentialChats, setPotentialChats, updateUserChats]
-  );
+  const deleteUser = useCallback(async (userId) => {
+    try {
+      await axios.delete(`${baseUrl}/users/${userId}`);
+      const updatedPotentialChats = potentialChats.filter(
+        (u) => u._id !== userId
+      );
+      setPotentialChats(updatedPotentialChats);
+    } catch (error) {
+      console.error("Error deleting user:", error);
+    }
+  }, [potentialChats, setPotentialChats]);
 
-  // useEffect để tự động thêm user vào chatlist khi component mount
+  const uniqueGroups = useMemo(() => {
+    if (!groups) return [];
+    return Array.from(new Map(groups.map(group => [group._id, group])).values());
+  }, [groups]);
+
   useEffect(() => {
     const addUsersToChatList = async () => {
       try {
@@ -41,29 +44,118 @@ const PotentialChats = ({ setRefresh }) => {
           await createChat(user._id, potentialUser._id);
         }
       } catch (error) {
-        console.error("Lỗi khi thêm user vào chatlist:", error);
+        console.error("Error adding users to chat list:", error);
       }
     };
 
-    addUsersToChatList();
-  }, [potentialChats, createChat, user._id]);
+    if (user?._id) {
+      addUsersToChatList();
+    }
+  }, [potentialChats, createChat, user]);
+
+  useEffect(() => {
+    const fetchUserGroups = async () => {
+      try {
+        const res = await getRequest(`${baseUrl}/groups/user/${user._id}`);
+        if (!res.error) {
+          console.log('Fetched groups:', res);
+          setGroups(res);
+        } else {
+          console.error("Error fetching user groups:", res.message);
+        }
+      } catch (error) {
+        console.error("Error fetching user groups:", error);
+      }
+    };
+
+    if (user?._id) {
+      fetchUserGroups();
+    }
+  }, [user]);
+
+  const fetchUser = async (userId) => {
+    try {
+      console.log("Fetching user with ID:", userId);
+      const res = await getRequest(`${baseUrl}/users/find/${userId}`);
+      if (!res.error) {
+        console.log("User data:", res);
+        return res;
+      } else {
+        console.error("Error fetching user:", res.message);
+        return null;
+      }
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      return null;
+    }
+  };
+
+  const handleGroupClick = async (group) => {
+    try {
+      if (!group?._id) {
+        console.error("Invalid group object");
+        return;
+      }
+
+      const groupId = group._id;
+      const messages = await fetchGroup(groupId);
+
+      const memberIds = group.members?.map(member => {
+        const userId = member?.user?._id || member?._id;
+        if (!userId) {
+          console.warn("Invalid member object:", member);
+        }
+        return userId;
+      }).filter(id => id);
+
+      const formattedGroup = {
+        ...group,
+        messages: messages || [],
+        members: memberIds,
+        isGroup: true
+      };
+
+      updateCurrentChat(formattedGroup);
+
+    } catch (error) {
+      console.error("Error in handleGroupClick:", error);
+    }
+  };
+
+  const fetchGroup = async (groupId) => {
+    try {
+      if (!groupId) throw new Error("Group ID is required");
+
+      const response = await getRequest(`${baseUrl}/groups/messages/${groupId}`);
+      if (response.error) throw new Error(response.message);
+
+      return response;
+    } catch (error) {
+      console.error("Error fetching group messages:", error);
+      return null;
+    }
+  };
 
   return (
-    <div className="all-users">
-      {potentialChats &&
-        potentialChats.map((u) => (
-          <div className="single-user" key={u._id}>
-            {u.name}
-            <span
-              className={
-                onlineUsers?.some((user) => user?.userId === u?._id)
-                  ? "user-online"
-                  : ""
-              }
-            ></span>
-
+    <div className="potential-chats">
+      {Array.isArray(uniqueGroups) && uniqueGroups.map((group) => (
+        <div
+          key={group._id}
+          className="user-card align-items-center p-2 justify-content-between hstack gap-3"
+          onClick={() => handleGroupClick(group)}
+        >
+          <div className="user-info d-flex align-items-center gap-3">
+            <img
+              src={group.groupImage || "/default-group.png"}
+              alt={group.name}
+              className="group-image"
+            />
           </div>
-        ))}
+          {onlineUsers?.some((user) => group.members.some(m => m.user._id === user.userId)) && (
+            <span className="online-dot"></span>
+          )}
+        </div>
+      ))}
     </div>
   );
 };

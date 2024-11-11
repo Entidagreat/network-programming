@@ -35,7 +35,7 @@ const UserChat = ({ chat, user }) => {
 
         return shortText;
     }
-    console.log("URL avatar:", recipientUser?.avatar); 
+    // console.log("URL avatar:", recipientUser?.avatar); 
 
     return (
         <Stack

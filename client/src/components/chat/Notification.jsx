@@ -29,8 +29,8 @@ const Notification = () => {
         }
 
     })
-    console.log("un", unreadNotifications);
-    console.log("mn", modifiedNotifications);
+    // console.log("un", unreadNotifications);
+    // console.log("mn", modifiedNotifications);
 
     if (language === 'vn') {
         moment.locale('vi');
