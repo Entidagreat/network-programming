@@ -47,60 +47,42 @@ export const ChatContextProvider = ({ children, user }) => {
 
     //send message
     useEffect(() => {
-        if (socket === null) return;
-        const recipientId = currentChat?.members?.find((id) => id !== user?._id);
-
-        socket.emit("sendMessage", { ...newMessage, recipientId });
-    }, [newMessage]);
-
-    const sendMessage = (receiverId, text) => {
-        if (socket === null) return;
-        socket.emit("sendMessage", {
-            senderId: user._id,
-            receiverId,
-            text,
-        });
-    };
-
-    const sendGroupMessage = (groupId, text) => {
-        if (socket === null) return;
-        socket.emit("sendGroupMessage", {
-            senderId: user._id,
-            groupId,
-            text,
-        });
-    };
-
-    // receive message and notification
-    useEffect(() => {
+        if (currentChat && currentChat.isGroup) {
+            const groupId = currentChat._id;
+            console.log('Chuẩn bị tham gia nhóm:', groupId);
+            socket.emit('joinGroup', groupId);
+            console.log('Đã gửi yêu cầu tham gia nhóm:', groupId);
+        }
         if (socket === null) return;
 
-        socket.on("getMessage", (res) => {
+        const handleNewMessage = (res) => {
             if (currentChat?._id !== res.chatId) return;
-
             setMessages((prev) => Array.isArray(prev) ? [...prev, res] : [res]);
-        });
+        };
 
-        socket.on("getGroupMessage", (res) => {
+        const handleNewGroupMessage = (res) => {
             if (currentChat?._id !== res.groupId) return;
-
             setMessages((prev) => Array.isArray(prev) ? [...prev, res] : [res]);
-        });
+        };
 
-        socket.on("getNotification", (res) => {
-            const isChatOpen = currentChat?.members.some(id => id === res.senderId);
-
+        const handleNotification = (res) => {
+            const isChatOpen = currentChat?.members?.some(id => id === res.senderId);
             if (isChatOpen) {
-                setNotifications(prev => Array.isArray(prev) ? [{ ...res, isRead: true }, ...prev] : [{ ...res, isRead: true }]);
+                setNotifications(prev => Array.isArray(prev) ? 
+                    [{ ...res, isRead: true }, ...prev] : [{ ...res, isRead: true }]);
             } else {
                 setNotifications(prev => Array.isArray(prev) ? [res, ...prev] : [res]);
             }
-        });
+        };
+
+        socket.on("getMessage", handleNewMessage);
+        socket.on("getGroupMessage", handleNewGroupMessage);
+        socket.on("getNotification", handleNotification);
 
         return () => {
-            socket.off("getMessage");
-            socket.off("getGroupMessage");
-            socket.off("getNotification");
+            socket.off("getMessage", handleNewMessage);
+            socket.off("getGroupMessage", handleNewGroupMessage);
+            socket.off("getNotification", handleNotification);
         };
     }, [socket, currentChat]);
 
@@ -200,24 +182,47 @@ export const ChatContextProvider = ({ children, user }) => {
         async (textMessage, sender, currentChatId, setTextMessage) => {
             if (!textMessage) return console.log("You must type a message");
 
-            const response = await postRequest(
-                `${baseUrl}/messages`,
-                JSON.stringify({
-                    chatId: currentChatId,
-                    senderId: sender._id,
-                    text: textMessage,
-                    isGroupMessage: currentChat.isGroup,
-                })
-            );
-            if (response.error) {
-                return setSendTextMessageError(response);
-            }
+            const isGroupChat = currentChat?.isGroup;
+            const endpoint = `${baseUrl}/messages`;
+            
+            const messageData = {
+                chatId: currentChatId,
+                senderId: sender._id,
+                text: textMessage,
+                isGroupMessage: isGroupChat
+            };
 
-            setNewMessage(response);
-            setMessages((prev) => Array.isArray(prev) ? [...prev, response] : [response]);
-            setTextMessage("");
+            try {
+                const response = await postRequest(endpoint, JSON.stringify(messageData));
+                
+                if (response.error) {
+                    setSendTextMessageError(response);
+                    return;
+                }
+
+                setNewMessage(response);
+                setMessages((prev) => Array.isArray(prev) ? [...prev, response] : [response]);
+                setTextMessage("");
+
+                // Emit socket event based on chat type
+                if (isGroupChat) {
+                    socket?.emit("sendGroupMessage", {
+                        ...response,
+                        groupId: currentChatId,
+                    });
+                } else {
+                    const recipientId = currentChat.members.find(id => id !== sender._id);
+                    socket?.emit("sendMessage", {
+                        ...response,
+                        recipientId,
+                    });
+                }
+            } catch (error) {
+                console.error("Error sending message:", error);
+                setSendTextMessageError(error);
+            }
         },
-        [currentChat]
+        [currentChat, socket]
     );
 
     const updateCurrentChat = useCallback((chat) => {
@@ -348,8 +353,7 @@ export const ChatContextProvider = ({ children, user }) => {
                 markAllNotificationAsRead,
                 markThisUserNotificationsAsRead,
                 updateUserChats,
-                sendMessage,
-                sendGroupMessage,
+               
             }}
         >
             {children}
