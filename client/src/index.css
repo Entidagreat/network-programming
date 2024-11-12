@@ -98,7 +98,7 @@ body.blurred-light::before {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.75rem;
+  padding: 0.60rem;
   color: #37342d;
   background: #fff1e4;
 }
@@ -130,18 +130,26 @@ body.blurred-light::before {
   text-align: justify;
 }
 
-.message-footer {
+/* .message-footer {
   font-size: 12px;
   align-self: flex-end;
   font-weight: 400;
-  position: absolute; /* Thêm thuộc tính này để đảm bảo vị trí tuyệt đối */
-  right: 0; /* Căn phải */
-  bottom: -10px; /* Khoảng cách so với đáy của message-content */
-  text-align: right; /* Căn phải cho nội dung bên trong */
+  position: absolute;
+  right: 0; 
+  bottom: -10px; 
+  text-align: right; 
   min-width: 150px;
   color: #33342d;
+} */
+.message-footer {
+  font-size: 12px;
+  align-self: flex-end;
+  left: 50%;
+  bottom: -3px; /* Aligned with the bottom of the message */
+  min-width: 150px;
+  color: #33342d;
+  margin-left: 337px; /* Add some spacing from translate button */
 }
-
 
 /* Chat Input  */
 .chat-input {
@@ -373,4 +381,13 @@ box-shadow: 0 16px 32px 0 rgba(0, 0, 0, 0.2);
 
 button.login-submit{
   background-color: #4793AF ;
+}
+.sender-name{
+  position: absolute;
+  top: -28px;
+  color: black;
+  min-width: 150px;
+  max-width: 150px;
+  font-size: 12px;
+  left:-10px;
 }

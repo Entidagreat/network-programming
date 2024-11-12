@@ -104,6 +104,10 @@ const ChatBox = () => {
           }
         </strong> 
       </div>
+      
+
+      
+      
       <Stack gap={3} className="messages">
         {messages && messages.map((message, index) => (
           <Stack
@@ -112,33 +116,54 @@ const ChatBox = () => {
               ? "message self align-self-end flex-grow-0"
               : "message align-self-start flex-grow-0"   
 
-              } message-container`}
+              } `}
             direction="horizontal"
             gap={2}
-            ref={scroll}
             onMouseEnter={() => setHoveredMessageId(message._id)}
             onMouseLeave={() => setHoveredMessageId(null)}
+            ref={scroll}
           >
-         <div className="message-content" style={{ position: 'relative', flexGrow: 1 }}>
-  <span className="sender-name">
-    {currentChat?.isGroup ? (
-      // For group chat, find member by senderId and show their username
-      currentChat.members?.find(member => 
-        member.user === message?.senderId
-      )?.username || 'Unknown User'
-    ) : (
-      // For direct chat, keep existing logic
-      message?.senderId === user?._id ? 
-        user?.name : 
+         <div className="message-content" style={{ 
+          position: 'relative', 
+          flexGrow: 1 ,
+          maxWidth: '100%',          // Contain width
+          // overflowX: 'hidden',       // Prevent horizontal scroll
+          wordBreak: 'break-word',   // Break long words
+          whiteSpace: 'pre-wrap',    // Preserve line breaks but wrap text
+          overflowWrap: 'break-word'
+          }}>    
+  {/* {message?.senderId !== user?._id && (
+    <div className="sender-name" style={{display:'flex', position:'rela', alignItems:'center'}}>
+      {currentChat?.isGroup ? (
+        // For group chat, show sender's username
+        currentChat.members?.find(member => 
+          member.user === message?.senderId
+        )?.username || 'Unknown User'
+      ) : (
+        // For direct chat, show recipient's name
         recipientUser?.name || 'Unknown User'
-    )}
-  </span>
+      )}
+    </div>
+  )} */}
   <span>{message?.text}</span>
   {translatedMessages[message?._id] && (
     <>
       <hr style={{ margin: "8px 0", border: "2px solid #ccc" }} />
       <span className="translated-text">{translatedMessages[message._id]}</span>
     </>
+  )}
+    {message?.senderId !== user?._id && (
+    <div className="sender-name" style={{display:'flex', position:'rela', alignItems:'center'}}>
+      {currentChat?.isGroup ? (
+        // For group chat, show sender's username
+        currentChat.members?.find(member => 
+          member.user === message?.senderId
+        )?.username || 'Unknown User'
+      ) : (
+        // For direct chat, show recipient's name
+        recipientUser?.name || 'Unknown User'
+      )}
+    </div>
   )}
               {hoveredMessageId === message._id && (
                 <span
@@ -155,7 +180,6 @@ const ChatBox = () => {
                 </span>
               )}
             </div>
-
               {message.senderId !== user?._id && (
                 <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
                   <button
@@ -182,13 +206,31 @@ const ChatBox = () => {
       </Stack>
 
       <Stack direction="horizontal" gap={3} className="chat-input flex-grow-0">
+      <div style={{
+    width: "100%", // chiều rộng tối đa
+    maxWidth: "750px", // chiều rộng tối đa (có thể điều chỉnh)
+    overflowWrap: 'break-word',
+    whiteSpace: 'pre-wrap'
+  }}>
         <InputEmoji
           value={textMessage}
           onChange={setTextMessage}
           fontFamily="Open-Sans"
           borderColor="rgba(72,112,223,0.2)"
           onKeyDown={handleKeyDown}
+          cleanOnEnter
+          placeholder="Type a message"
+          maxLength={1000}
+          // Add these props for text wrapping
+          height="auto"
+          maxHeight={100} // Maximum height before scrolling
+          style={{
+            overflow: 'auto',
+            wordWrap: 'break-word',
+            whiteSpace: 'pre-wrap'
+          }}
         />
+          </div>
         <button className="send-btn"
           onClick={() => sendTextMessage(textMessage, user, currentChat._id, setTextMessage)}>
           <svg
