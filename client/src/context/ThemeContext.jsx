@@ -7,11 +7,12 @@ export const ThemeProvider = ({ children }) => {
 
   const toggleTheme = () => {
     setIsDarkMode(prev => !prev);
-    // Toggle CSS file
-    const theme = !isDarkMode ? 'dark' : 'light';
-    document.body.setAttribute('data-theme', theme);
+    const theme = document.documentElement.getAttribute('data-theme');
+    document.documentElement.setAttribute(
+      'data-theme',
+      theme === 'dark' ? 'light' : 'dark'
+    );
   };
-
   return (
     <ThemeContext.Provider value={{ isDarkMode, toggleTheme }}>
       {children}
