@@ -1,10 +1,10 @@
-import { useContext, useCallback, useEffect, useState,useMemo } from "react";
+import { useContext, useCallback, useEffect, useState, useMemo } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { ChatContext } from "../../context/ChatContext";
 import axios from "axios";
 import { useLanguage } from "../../context/LanguageContext";
 import { translations } from "../../utils/translations";
-import { baseUrl, getRequest } from "../../utils/services"; 
+import { baseUrl, getRequest } from "../../utils/services";
 
 const PotentialChats = ({ setRefresh }) => {
   const { user } = useContext(AuthContext);
@@ -81,7 +81,7 @@ const PotentialChats = ({ setRefresh }) => {
       const res = await getRequest(`${baseUrl}/users/find/${userId}`);
       if (!res.error) {
         console.log("User data:", res);
-        return res; 
+        return res;
       } else {
         console.error("Error fetching user:", res.message);
         return null;
@@ -94,74 +94,74 @@ const PotentialChats = ({ setRefresh }) => {
 
   // Fetch group messages
   // Fetch group messages
-// PotentialChats.jsx
-const handleGroupClick = async (group) => {
-  try {
-    if (!group?._id) {
-      console.error("Invalid group object");
-      return;
-    }
-
-    const groupId = group._id;
-    const messages = await fetchGroup(groupId);
-
-    // Format members correctly
-    const memberIds = group.members?.map(member => {
-      // Handle different member object structures
-      const userId = member?.user?._id || member?._id;
-      if (!userId) {
-        console.warn("Invalid member object:", member);
+  // PotentialChats.jsx
+  const handleGroupClick = async (group) => {
+    try {
+      if (!group?._id) {
+        console.error("Invalid group object");
+        return;
       }
-      return userId;
-    }).filter(id => id); // Remove any undefined/null values
 
-    // Create properly formatted group object
-    const formattedGroup = {
-      ...group,
-      messages: messages || [],
-      members: memberIds,
-      isGroup: true
-    };
+      const groupId = group._id;
+      const messages = await fetchGroup(groupId);
 
-    // Update chat context with formatted group
-    updateCurrentChat(formattedGroup);
+      // Format members correctly
+      const memberIds = group.members?.map(member => {
+        // Handle different member object structures
+        const userId = member?.user?._id || member?._id;
+        if (!userId) {
+          console.warn("Invalid member object:", member);
+        }
+        return userId;
+      }).filter(id => id); // Remove any undefined/null values
 
-  } catch (error) {
-    console.error("Error in handleGroupClick:", error);
-    // Optional: Add user notification here
-    // toast.error("Failed to load group chat");
-  }
-};
+      // Create properly formatted group object
+      const formattedGroup = {
+        ...group,
+        messages: messages || [],
+        members: memberIds,
+        isGroup: true
+      };
 
-// Helper function to fetch group messages
-const fetchGroup = async (groupId) => {
-  try {
-    if (!groupId) throw new Error("Group ID is required");
-    
-    const response = await getRequest(`${baseUrl}/groups/messages/${groupId}`);
-    if (response.error) throw new Error(response.message);
-    
-    return response;
-  } catch (error) {
-    console.error("Error fetching group messages:", error);
-    return null;
-  }
-};
- return (
+      // Update chat context with formatted group
+      updateCurrentChat(formattedGroup);
+
+    } catch (error) {
+      console.error("Error in handleGroupClick:", error);
+      // Optional: Add user notification here
+      // toast.error("Failed to load group chat");
+    }
+  };
+
+  // Helper function to fetch group messages
+  const fetchGroup = async (groupId) => {
+    try {
+      if (!groupId) throw new Error("Group ID is required");
+
+      const response = await getRequest(`${baseUrl}/groups/messages/${groupId}`);
+      if (response.error) throw new Error(response.message);
+
+      return response;
+    } catch (error) {
+      console.error("Error fetching group messages:", error);
+      return null;
+    }
+  };
+  return (
     <div className="potential-chats">
       {Array.isArray(uniqueGroups) && uniqueGroups.map((group) => (
-        <div 
-          key={group._id} 
-          className="user-card align-items-center p-2 justify-content-between hstack gap-3" 
+        <div
+          key={group._id}
+          className="user-card align-items-center p-2 justify-content-between hstack gap-3"
           onClick={() => handleGroupClick(group)}
         >
           <div className="user-info d-flex align-items-center gap-3">
-            <img 
-              src={group.groupImage || "/default-group.png"} 
-              alt={group.name} 
-              className="group-image" 
+            <img
+              src={group.groupImage || "/default-group.png"}
+              alt={group.name}
+              className="group-image"
             />
-           
+
           </div>
           {onlineUsers?.some((user) => group.members.some(m => m.user._id === user.userId)) && (
             <span className="online-dot"></span>

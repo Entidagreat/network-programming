@@ -47,21 +47,26 @@ export const ChatContextProvider = ({ children, user }) => {
     // useEffect(() => {
     //     if (!socket) return;
 
-    //     const handleNotification = (res) => {
-    //         console.log('Received notification:', res);
-    //         const isGroupMessage = Boolean(res.groupId);
-    //         const isChatOpen = isGroupMessage
-    //             ? currentChat?._id === res.groupId // For group messages
-    //             : currentChat?.members?.some(id => id === res.senderId); // For 1-on-1 messages
+        const handleNotification = (res) => {
+            console.log('Received notification:', res);
+            const isGroupMessage = Boolean(res.groupId);
+            const isChatOpen = isGroupMessage
+                ? currentChat?._id === res.groupId // For group messages
+                : currentChat?.members?.some(id => id === res.senderId); // For 1-on-1 messages
+            setNotifications(prev => {
+                const isDuplicate = prev.some(n => n._id === res._id);
+                if (isDuplicate) {
+                    return prev;
+                }
 
-    //         if (isChatOpen) {
-    //             setNotifications(prev => [{ ...res, isRead: true }, ...prev]);
-    //         } else {
-    //             setNotifications(prev => [res, ...prev]);
-    //         }
-    //     };
-
-    //     socket.on('getNotification', handleNotification);
+                if (isChatOpen) {
+                    return [{ ...res, isRead: true }, ...prev];
+                } else {
+                    return [res, ...prev];
+                }
+            });
+        };
+        socket.on('getNotification', handleNotification);
 
     //     return () => {
     //         socket.off('getNotification', handleNotification);
