@@ -44,29 +44,29 @@ export const ChatContextProvider = ({ children, user }) => {
             socket.off("getOnlineUsers");
         };
     }, [socket]);
-    useEffect(() => {
-        if (!socket) return;
+    // useEffect(() => {
+    //     if (!socket) return;
 
-        const handleNotification = (res) => {
-            console.log('Received notification:', res);
-            const isGroupMessage = Boolean(res.groupId);
-            const isChatOpen = isGroupMessage
-                ? currentChat?._id === res.groupId // For group messages
-                : currentChat?.members?.some(id => id === res.senderId); // For 1-on-1 messages
+    //     const handleNotification = (res) => {
+    //         console.log('Received notification:', res);
+    //         const isGroupMessage = Boolean(res.groupId);
+    //         const isChatOpen = isGroupMessage
+    //             ? currentChat?._id === res.groupId // For group messages
+    //             : currentChat?.members?.some(id => id === res.senderId); // For 1-on-1 messages
 
-            if (isChatOpen) {
-                setNotifications(prev => [{ ...res, isRead: true }, ...prev]);
-            } else {
-                setNotifications(prev => [res, ...prev]);
-            }
-        };
+    //         if (isChatOpen) {
+    //             setNotifications(prev => [{ ...res, isRead: true }, ...prev]);
+    //         } else {
+    //             setNotifications(prev => [res, ...prev]);
+    //         }
+    //     };
 
-        socket.on('getNotification', handleNotification);
+    //     socket.on('getNotification', handleNotification);
 
-        return () => {
-            socket.off('getNotification', handleNotification);
-        };
-    }, [socket, currentChat]);
+    //     return () => {
+    //         socket.off('getNotification', handleNotification);
+    //     };
+    // }, [socket, currentChat]);
 
     //send message
     useEffect(() => {

@@ -8,6 +8,8 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
+const mongoose = require('mongoose'); // Import mongoose
+
 console.log(process.env.CLOUDINARY_API_KEY);
 const cloudinary = require('cloudinary').v2;
 cloudinary.config({
@@ -19,7 +21,11 @@ cloudinary.config({
 if (!fs.existsSync('assets')) {
     fs.mkdirSync('assets');
 }
+// const user = { _id: new mongoose.Types.ObjectId() };
+// console.log(user) // Tạo một ObjectId hợp lệ
+// const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
 
+// console.log('Token:', token);
 const createToken = (_id) => {
     const jwtkey = process.env.JWT_SECRET_KEY;
 
@@ -130,8 +136,13 @@ const loginUser = async (req, res) => {
 
         const token = createToken(user._id);
 
-        res.status(200).json({ _id: user._id, name: user.name, email, token });
-    } catch (error) {
+        res.status(200).json({ 
+            _id: user._id, 
+            name: user.name, 
+            email: user.email, 
+            token: token,
+            avatar: user.avatar // Thêm trường avatar 
+        });    } catch (error) {
         console.log(error);
         res.status(500).json("lỗi server");
     }
@@ -201,6 +212,33 @@ const searchUsersByName = async (req, res) => {
     }
 };
 
+
+// Function to update user's avatar
+const updateUserAvatar = async (userId, avatarUrl) => {
+    try {
+        if (!avatarUrl || typeof avatarUrl !== 'string') {
+            throw new Error('Invalid avatar URL');
+        }
+
+        const updatedUser = await userModel.findByIdAndUpdate(
+            userId,
+            { avatar: avatarUrl },
+            { new: true }
+        );
+
+        if (!updatedUser) {
+            throw new Error('User not found');
+        }
+
+        return updatedUser;
+    } catch (error) {
+        console.error('Error updating avatar:', error);
+        throw error;
+    }
+};
+
+
+
 module.exports = { 
     registerUser, 
     loginUser, 
@@ -209,5 +247,6 @@ module.exports = {
     deleteUser, 
     searchUsersByName, 
     upload,
-    uploadToCloudinary, // Export upload middleware
+    uploadToCloudinary,
+    updateUserAvatar  // Export upload middleware
   };

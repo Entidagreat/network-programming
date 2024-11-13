@@ -107,7 +107,9 @@ const registerUser = useCallback(async (e) => {
         const response = await postRequest(
             `${baseUrl}/users/login`,
             JSON.stringify(loginInfo)
+            
         );
+        console.log("Login response:", response);
         setIsLoginLoading(false);
         if (response.error) {
             return setLoginError(response);
@@ -140,6 +142,7 @@ const registerUser = useCallback(async (e) => {
                 loginError,
                 updateLoginInfo,
                 isLoginLoading,
+                setUser
             }}
         >
             {children}
