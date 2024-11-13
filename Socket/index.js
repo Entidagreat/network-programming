@@ -125,6 +125,7 @@ io.on("connection", (socket) => {
 
         try {
             io.in(roomId).emit("getGroupMessage", enhancedMessage);
+            io.in(roomId).emit("getGroupMessage", message);
 
             socket.emit("messageDelivered", {
                 messageId,
@@ -138,7 +139,8 @@ io.on("connection", (socket) => {
                 groupId: message.groupId,
                 messageId,
                 isRead: false,
-                date: timestamp
+                date: timestamp,
+                type: 'group' // Add message type
             });
 
             const recipientCount = io.sockets.adapter.rooms.get(roomId)?.size || 0;

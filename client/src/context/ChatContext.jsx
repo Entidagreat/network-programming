@@ -28,12 +28,12 @@ export const ChatContextProvider = ({ children, user }) => {
     useEffect(() => {
         const newSocket = io("http://localhost:3000");
         setSocket(newSocket);
-    
+
         return () => {
             newSocket.disconnect();
         };
     }, [user]);
-    
+
     useEffect(() => {
         if (socket === null) return;
         socket.emit("addNewUser", user?._id);
@@ -44,6 +44,29 @@ export const ChatContextProvider = ({ children, user }) => {
             socket.off("getOnlineUsers");
         };
     }, [socket]);
+    useEffect(() => {
+        if (!socket) return;
+
+        const handleNotification = (res) => {
+            console.log('Received notification:', res);
+            const isGroupMessage = Boolean(res.groupId);
+            const isChatOpen = isGroupMessage
+                ? currentChat?._id === res.groupId // For group messages
+                : currentChat?.members?.some(id => id === res.senderId); // For 1-on-1 messages
+
+            if (isChatOpen) {
+                setNotifications(prev => [{ ...res, isRead: true }, ...prev]);
+            } else {
+                setNotifications(prev => [res, ...prev]);
+            }
+        };
+
+        socket.on('getNotification', handleNotification);
+
+        return () => {
+            socket.off('getNotification', handleNotification);
+        };
+    }, [socket, currentChat]);
 
     //send message
     useEffect(() => {
@@ -66,9 +89,12 @@ export const ChatContextProvider = ({ children, user }) => {
         };
 
         const handleNotification = (res) => {
-            const isChatOpen = currentChat?.members?.some(id => id === res.senderId);
+            const isGroupMessage = Boolean(res.groupId);
+            const isChatOpen = isGroupMessage
+                ? currentChat?._id === res.groupId // For group messages
+                : currentChat?.members?.some(id => id === res.senderId); // For 1-on-1 messages
             if (isChatOpen) {
-                setNotifications(prev => Array.isArray(prev) ? 
+                setNotifications(prev => Array.isArray(prev) ?
                     [{ ...res, isRead: true }, ...prev] : [{ ...res, isRead: true }]);
             } else {
                 setNotifications(prev => Array.isArray(prev) ? [res, ...prev] : [res]);
@@ -184,7 +210,7 @@ export const ChatContextProvider = ({ children, user }) => {
 
             const isGroupChat = currentChat?.isGroup;
             const endpoint = `${baseUrl}/messages`;
-            
+
             const messageData = {
                 chatId: currentChatId,
                 senderId: sender._id,
@@ -194,7 +220,7 @@ export const ChatContextProvider = ({ children, user }) => {
 
             try {
                 const response = await postRequest(endpoint, JSON.stringify(messageData));
-                
+
                 if (response.error) {
                     setSendTextMessageError(response);
                     return;
@@ -353,7 +379,7 @@ export const ChatContextProvider = ({ children, user }) => {
                 markAllNotificationAsRead,
                 markThisUserNotificationsAsRead,
                 updateUserChats,
-               
+
             }}
         >
             {children}

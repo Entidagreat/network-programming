@@ -13,19 +13,20 @@ const Notification = () => {
     const { user } = useContext(AuthContext);
     const { notifications, userChats, allUsers, markAllNotificationsAsRead, markAllNotificationAsRead } =
         useContext(ChatContext);
-    
+
 
     const unreadNotifications = unreadNotificationsFunc(notifications);
 
     const { language } = useLanguage();
     const t = translations[language]; // Sử dụng translations từ utils/translations
-    
+
     const modifiedNotifications = notifications.map((n) => {
         const sender = allUsers.find(user => user._id === n.senderId);
+        const group = userChats.find(chat => chat._id === n.groupId);
 
         return {
             ...n,
-            senderName: sender?.name,
+            senderName: sender?.name || group?.name || 'Unknown',
         }
 
     })
@@ -34,9 +35,9 @@ const Notification = () => {
 
     if (language === 'vn') {
         moment.locale('vi');
-      } else {
+    } else {
         moment.locale('en');
-      }
+    }
 
 
     return (
@@ -67,7 +68,7 @@ const Notification = () => {
                             className="mark-as-read"
                             onClick={() => markAllNotificationsAsRead(notifications)}
                         >
-                           {t.Notification.mark}
+                            {t.Notification.mark}
                         </div>
                     </div>
                     {modifiedNotifications?.length === 0 ? <span className="notification">{t.Notification.noNotification}</span> : null}
@@ -82,7 +83,8 @@ const Notification = () => {
                                     setIsOpen(false);
                                 }}
                             >
-                                <span>{`${n.senderName} sent you a new message`}</span>
+                                <span>{n.type === 'group' ? `${n.senderName} sent a message in group ${n.groupId}` : ''}</span>
+                                <span>{n.type !== 'group' ? `${n.senderName} sent you a new message` : ''}</span>
                                 <span className="notification-time">
                                     {moment(n.date).calendar()}
                                 </span>
