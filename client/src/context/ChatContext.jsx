@@ -44,8 +44,9 @@ export const ChatContextProvider = ({ children, user }) => {
             socket.off("getOnlineUsers");
         };
     }, [socket]);
-    // useEffect(() => {
-    //     if (!socket) return;
+
+    useEffect(() => {
+        if (socket === null) return;
 
         const handleNotification = (res) => {
             console.log('Received notification:', res);
@@ -68,10 +69,10 @@ export const ChatContextProvider = ({ children, user }) => {
         };
         socket.on('getNotification', handleNotification);
 
-    //     return () => {
-    //         socket.off('getNotification', handleNotification);
-    //     };
-    // }, [socket, currentChat]);
+        return () => {
+            socket.off('getNotification', handleNotification);
+        };
+    }, [socket, currentChat]);
 
     //send message
     useEffect(() => {

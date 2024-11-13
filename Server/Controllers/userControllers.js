@@ -32,7 +32,7 @@ const createToken = (_id) => {
     return jwt.sign({ _id }, jwtkey, { expiresIn: "3d" });
 };
 
-const storage = multer.diskStorage({}); // Không cần lưu trữ file local
+const storage = multer.memoryStorage({}); // Không cần lưu trữ file local
 
 const upload = multer({ 
   storage: storage,
@@ -47,19 +47,21 @@ const upload = multer({
   }
 }); 
 
-const uploadToCloudinary = async (file) => {
-  try {
-    const result = await cloudinary.uploader.upload(file.path, {
-        folder: 'home/avatar'
-        // Tùy chọn: lưu vào thư mục avatars
+const uploadToCloudinary = (file) => {
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+            { folder: 'home/avatar' },
+            (error, result) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(result.secure_url);
+                }
+            }
+        );
+        stream.end(file.buffer);
     });
-    return result.secure_url; // Đường dẫn ảnh trên Cloudinary
-  } catch (error) {
-    console.error('Lỗi khi upload lên Cloudinary:', error);
-    throw error;
-  }
 };
-
 const registerUser = async (req, res) => {
     try {
         console.log('Request body:', req.body);
@@ -214,28 +216,33 @@ const searchUsersByName = async (req, res) => {
 
 
 // Function to update user's avatar
-const updateUserAvatar = async (userId, avatarUrl) => {
+const updateUserAvatar = async (req, res) => {
     try {
-        if (!avatarUrl || typeof avatarUrl !== 'string') {
-            throw new Error('Invalid avatar URL');
-        }
-
-        const updatedUser = await userModel.findByIdAndUpdate(
-            userId,
-            { avatar: avatarUrl },
-            { new: true }
-        );
-
-        if (!updatedUser) {
-            throw new Error('User not found');
-        }
-
-        return updatedUser;
+      const userId = req.user._id; // Lấy ID người dùng từ middleware xác thực
+      const avatarUrl = req.body.avatar; // Lấy URL avatar từ req.body
+  
+      // Kiểm tra xem URL avatar có hợp lệ không
+      if (!avatarUrl || typeof avatarUrl !== 'string') {
+        return res.status(400).json({ message: 'URL avatar không hợp lệ' });
+      }
+  
+      // Cập nhật avatar của người dùng trong database
+      const updatedUser = await userModel.findByIdAndUpdate(
+        userId,
+        { avatar: avatarUrl },
+        { new: true } // Trả về document đã được cập nhật
+      );
+  
+      if (!updatedUser) {
+        return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+      }
+  
+      res.status(200).json(updatedUser); // Trả về thông tin người dùng đã cập nhật
     } catch (error) {
-        console.error('Error updating avatar:', error);
-        throw error;
+      console.error('Lỗi khi cập nhật avatar:', error);
+      res.status(500).json({ message: 'Lỗi server' });
     }
-};
+  };
 
 
 
