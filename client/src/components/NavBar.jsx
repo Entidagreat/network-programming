@@ -68,11 +68,11 @@ const updatedUserResponse = await axios.get(`${baseUrl}/users/find/${user._id}`)
                                 alt="Avatar"
                                 width="30"
                                 height="30"
-                                style={{ borderRadius: '50%', cursor: 'pointer' }}
+                                style={{ borderRadius: '50%', cursor: 'pointer' ,marginLeft: '3px', marginBottom: '3px'}}
                                 onError={(e) => { e.target.onerror = null; e.target.src = avartar }}
                                 onClick={handleAvatarClick}
                             />
-                            {user?.name}
+                           <span style={{ marginLeft: '5px' }}>{user?.name}</span>
                         </span>
                         <input
                             type="file"
