@@ -1,8 +1,8 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { Stack } from "react-bootstrap";
 import { AuthContext } from "../../context/AuthContext";
-import { ChatContext   
- } from "../../context/ChatContext";
+import { ChatContext  } from "../../context/ChatContext";
+ import { io } from "socket.io-client";
 import { useFetchRecipientUser } from "../../hooks/useFetchRecipient";   
  // Giữ lại hook này
 import moment from "moment";
@@ -12,18 +12,19 @@ import { translateToEnglish, translateToVietnamese } from "../../utils/translate
 import he from "he";
 import { useLanguage } from "../../context/LanguageContext";
 import { translations } from "../../utils/translations";
+import { baseUrl } from "../../utils/services";
 
 const ChatBox = () => {
   const { user } = useContext(AuthContext);
-  const { currentChat, messages, isMessagesLoading, sendTextMessage } = useContext(ChatContext);
-  const { recipientUser } = useFetchRecipientUser(currentChat,   
- user); // Sử dụng hook
+  const { currentChat, messages, isMessagesLoading, sendTextMessage, socket } = useContext(ChatContext); // Lấy socket từ context
+  const { recipientUser } = useFetchRecipientUser(currentChat, user);
   const [textMessage, setTextMessage] = useState("");
   const [translatedMessages, setTranslatedMessages] = useState({});
   const [hoveredMessageId, setHoveredMessageId] = useState(null);
   const scroll = useRef();
   const { language } = useLanguage();
   const t = translations[language];
+  const [selectedFile, setSelectedFile] = useState(null);
 
   useEffect(() => {
     if (language === 'vn') {
@@ -32,7 +33,19 @@ const ChatBox = () => {
       moment.locale('en');
     }
   }, [language]);
-
+  // useEffect(() => {
+  //   const newSocket = io("http://localhost:3000");
+  //   setSocket(newSocket);
+  
+  //   // Gửi userId khi kết nối
+  //   newSocket.on('connect', () => {
+  //     newSocket.emit('addUser', user._id); 
+  //   });
+  
+  //   return () => {
+  //     newSocket.disconnect();
+  //   };
+  // }, []);
   useEffect(() => {
     setTranslatedMessages({});
   }, [currentChat]);
@@ -43,7 +56,12 @@ const ChatBox = () => {
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
-      // Kiểm tra xem đang chat trong nhóm hay chat riêng
+      if (selectedFile) {
+        sendFile(selectedFile);
+        setSelectedFile(null);
+        document.getElementById('fileInput').value = '';
+      } 
+
       if (currentChat?.isGroup) {
         sendTextMessage(textMessage, user, currentChat._id, setTextMessage, true); 
       } else {
@@ -51,11 +69,80 @@ const ChatBox = () => {
       }
     }
   };
+
   useEffect(() => {
     console.log('currentChat:', currentChat);
     console.log('message:', messages);
     console.log('member:', currentChat?.members);
   }, [currentChat, messages]);
+
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    setSelectedFile(file);
+
+    if (socket) {
+      console.log("Dữ liệu gửi đi:", { 
+        chatId: currentChat._id,
+        senderId: user._id,
+        recipientId: currentChat.isGroup ? null : currentChat.members.find(id => id !== user._id),
+        groupId: currentChat.isGroup ? currentChat._id : null,
+        file: file
+      });
+
+      socket.emit('sendFile', { 
+        chatId: currentChat._id,
+        senderId: user._id,
+        recipientId: currentChat.isGroup ? null : currentChat.members.find(id => id !== user._id),
+        groupId: currentChat.isGroup ? currentChat._id : null,
+        file: file 
+      }, (response) => {
+        if (response.status === "sent") {
+          console.log("File đã được gửi thành công", response); 
+          setMessages(prevMessages => [...prevMessages, response.newMessage]); 
+        } else {
+          console.error("Lỗi gửi file:", response.error);
+        }
+      });
+    }
+  };
+
+  const sendFile = (file) => {
+    if (socket) {
+      socket.emit('sendFile', { 
+        chatId: currentChat._id,
+        senderId: user._id,
+        recipientId: currentChat.isGroup ? null : currentChat.members.find(id => id !== user._id),
+        groupId: currentChat.isGroup ? currentChat._id : null,
+        file: file 
+      }, (response) => {
+        if (response.status === "sent") {
+          console.log("File đã được gửi thành công");
+          // Cập nhật UI
+        } else {
+          console.error("Lỗi gửi file:", response.error);
+          // Hiển thị thông báo lỗi
+        }
+      });
+    } else {
+      console.error("Socket.IO chưa được khởi tạo.");
+      // Xử lý lỗi, ví dụ: hiển thị thông báo cho người dùng
+    }
+  };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   const handleTranslate = async (message) => {
     try {
       if (translatedMessages[message._id]) {
@@ -123,6 +210,19 @@ const ChatBox = () => {
             onMouseLeave={() => setHoveredMessageId(null)}
             ref={scroll}
           >
+             {/* Hiển thị tên người gửi */}
+             {message?.senderId !== user?._id && (
+              <div className="sender-name">
+                {currentChat?.isGroup ? (
+                  // Hiển thị tên người gửi trong nhóm
+                  currentChat.members.find(member => member.user === message?.senderId)?.username || 'Unknown User' 
+                ) : (
+                  // Hiển thị tên người nhận trong tin nhắn 1-1
+                  recipientUser?.name || 'Unknown User' 
+                )}
+              </div>
+            )}
+
          <div className="message-content" style={{ 
           position: 'relative', 
           flexGrow: 1 ,
@@ -146,6 +246,28 @@ const ChatBox = () => {
     </div>
   )} */}
   <span>{message?.text}</span>
+   {/* Hiển thị file */}
+  {message?.file && (
+                <div>
+                  {message.file.mimetype.startsWith('image/') ? (
+                    <img 
+                      src={message.file.url} 
+                      alt={message.file.filename} 
+                      style={{ maxWidth: '100px', maxHeight: '50px' }} 
+                    />
+                  ) : message.file.mimetype.startsWith('video/') ? (
+                    <video 
+                      src={message.file.url} 
+                      controls 
+                      style={{ maxWidth: '100px', maxHeight: '50px' }} 
+                    />
+                  ) : (
+                    <a href={message.file.url} target="_blank" rel="noopener noreferrer">
+                      {message.file.filename}
+                    </a>
+                  )}
+                </div>
+              )}
   {translatedMessages[message?._id] && (
     <>
       <hr style={{ margin: "8px 0", border: "2px solid #ccc" }} />
@@ -231,8 +353,15 @@ const ChatBox = () => {
           }}
         />
           </div>
+          <input 
+  type="file" 
+  id="fileInput" 
+  style={{ display: 'none' }} 
+  onChange={handleFileChange} // Gọi hàm xử lý khi chọn file
+/>
                  <button
-           classname="send-file"
+           className="send-file"
+           onClick={() => document.getElementById('fileInput').click()} // Kích hoạt input file
            style={{
             color: '#37342d',
             backgroundColor: 'transparent',
@@ -248,7 +377,7 @@ const ChatBox = () => {
             width="22" 
             height="22" 
             fill="currentColor" 
-            class="bi bi-paperclip" 
+            className="bi bi-paperclip" 
             viewBox="0 0 16 16">
          <path d="M4.5 3a2.5 2.5 0 0 1 5 0v9a1.5 1.5 0 0 1-3 0V5a.5.5 0 0 1 1 0v7a.5.5 0 0 0 1 0V3a1.5 1.5 0 1 0-3 0v9a2.5 2.5 0 0 0 5 0V5a.5.5 0 0 1 1 0v7a3.5 3.5 0 1 1-7 0z"/>
         </svg>

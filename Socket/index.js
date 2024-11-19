@@ -1,11 +1,18 @@
 const { Server } = require("socket.io");
+const messageModel = require("../Server/Models/messageModel"); 
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+require('dotenv').config();
+const cloudinary = require('cloudinary').v2;
+const mongoose = require('mongoose');
 
 const io = new Server({
     cors: {
-        origin: "http://localhost:5173", // Thay đổi thành URL client của bạn
-        methods: ["GET", "POST"]
+      origin: "http://localhost:5173", // Thay thế bằng origin của client của bạn
+      methods: ["GET", "POST"]
     }
-});
+  });
 
 let onlineUsers = [];
 const activeGroups = new Map();
@@ -15,8 +22,11 @@ io.on("connection", (socket) => {
     console.log("Kết nối mới:", socket.id);
 
     socket.on("addNewUser", (userId) => {
+        
         if (!userId) return;
-
+        socket.userId = userId; // Gán userId cho socket
+        console.log(`Đã gán userId ${userId} cho socket ${socket.id}`); // Log userId
+    
         const existingUserIndex = onlineUsers.findIndex(user => user.userId === userId);
         if (existingUserIndex !== -1) {
             onlineUsers[existingUserIndex].socketId = socket.id;
@@ -173,6 +183,76 @@ io.on("connection", (socket) => {
         });
     });
 
+
+    socket.on("sendFile", async (data, callback) => {
+        console.log("Dữ liệu nhận được từ client:", data); // In ra toàn bộ data
+        console.log("chatId:", data.chatId);
+  console.log("senderId:", data.senderId);
+  console.log("recipientId:", data.recipientId);
+  console.log("groupId:", data.groupId);
+  console.log("file:", data.file);
+        try {
+          const { recipientId, groupId, chatId } = data;
+          const file = data.file;
+    
+          if (!chatId) {
+            console.log("Thiếu chatId");
+            return callback({ error: 'Missing chatId', timestamp: new Date() });
+          }
+          if (!socket.userId) {
+            console.log("Thiếu socket.userId");
+            return callback({ error: 'Missing socket.userId', timestamp: new Date() });
+          }
+          if (!file) {
+            console.log("Thiếu file");
+            return callback({ error: 'Missing file', timestamp: new Date() });
+          }
+          const uploadResult = await uploadToCloudinary(file);
+    
+          const newMessage = await messageModel.create({
+            chatId,
+            senderId: socket.userId,
+            file: {
+              filename: uploadResult.original_filename,
+              url: uploadResult.secure_url,
+              mimetype: uploadResult.resource_type + '/' + path.extname(uploadResult.original_filename).substring(1)
+            },
+            groupId: groupId
+          });
+    
+          // Gửi thông báo cho người nhận hoặc nhóm
+          if (groupId) {
+            io.to(`group_${groupId}`).emit("newFile", { 
+              senderId: socket.userId, 
+              file: newMessage.file,
+              groupId: groupId
+            });
+          } else if (recipientId) {
+            io.to(recipientId).emit("newFile", { 
+              senderId: socket.userId, 
+              file: newMessage.file
+            });
+          }
+    
+          callback({ status: "sent", timestamp: new Date() });
+        } catch (error) {
+          console.error('Lỗi khi gửi file:', error);
+          callback({ error: "Không thể gửi file", timestamp: new Date() });
+        }
+      });
+    
+
+
+
+
+
+
+
+
+
+
+
+
     socket.on("disconnect", () => {
         console.log(`Người dùng ngắt kết nối: ${socket.id}`);
 
@@ -210,3 +290,4 @@ setInterval(() => {
 }, 60000);
 
 io.listen(3000);
+module.exports= io;
