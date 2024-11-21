@@ -5,6 +5,7 @@ import axios from "axios";
 import { useLanguage } from "../../context/LanguageContext";
 import { translations } from "../../utils/translations";
 import { baseUrl, getRequest } from "../../utils/services";
+import { useFetchLatestMessage } from "../../hooks/useFetchMessage";
 
 const PotentialChats = ({ setRefresh }) => {
   const { user } = useContext(AuthContext);
@@ -15,6 +16,7 @@ const PotentialChats = ({ setRefresh }) => {
     setPotentialChats,
     updateUserChats,
     updateCurrentChat,
+    latestGroupMessage,
   } = useContext(ChatContext);
   const { language } = useLanguage();
   const t = translations[language];
@@ -31,6 +33,14 @@ const PotentialChats = ({ setRefresh }) => {
       console.error("Error deleting user:", error);
     }
   }, [potentialChats, setPotentialChats]);
+
+  const truncateText = (text) => {
+    let shortText = text.substring(0, 20);
+    if (text.length > 20) {
+      shortText = shortText + "...";
+    }
+    return shortText;
+  };
 
   const uniqueGroups = useMemo(() => {
     if (!groups) return [];
@@ -155,14 +165,16 @@ const PotentialChats = ({ setRefresh }) => {
           className="user-card align-items-center p-2 justify-content-between hstack gap-3"
           onClick={() => handleGroupClick(group)}
         >
-          <div className="user-info d-flex align-items-center gap-3">
-            <img
-              src={group.groupImage || "/default-group.png"}
-              alt={group.name}
-              className="group-image"
-            />
-
+<div className="user-info d-flex align-items-center gap-3">
+    <div className="d-flex flex-column">
+        <span className="group-name fw-bold">{group.name}</span>
+        <div className="text">
+            {latestGroupMessage?.text && (
+              <span>{truncateText(latestMessage?.text)}</span>
+            )}
           </div>
+    </div>
+</div>
           {onlineUsers?.some((user) => group.members.some(m => m.user._id === user.userId)) && (
             <span className="online-dot"></span>
           )}
