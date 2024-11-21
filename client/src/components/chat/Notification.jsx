@@ -27,7 +27,8 @@ const Notification = () => {
     const modifiedNotifications = notifications.map((n) => {
         const sender = allUsers.find(user => user._id === n.senderId);
         const group = userChats.find(chat => chat._id === n.groupId);
-
+        console.log("sender", sender);
+        console.log("group", group);
         return {
             ...n,
             senderName: sender?.name || group?.name || 'Unknown',
@@ -70,8 +71,10 @@ const Notification = () => {
                         <h3>{t.Notification.Tag}</h3>
                         <div
                             className="mark-as-read"
-                            onClick={() => markAllNotificationsAsRead(notifications)}
-                        >
+                            onClick={() => {
+                                markAllNotificationAsRead(n, userChats, user, notifications, n.groupId); // Truyền groupId
+                                setIsOpen(false);
+                              }}                        >
                             {t.Notification.mark}
                         </div>
                     </div>

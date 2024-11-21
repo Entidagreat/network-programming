@@ -44,23 +44,50 @@ export const ChatContextProvider = ({ children, user }) => {
     }, [socket]);
 
     // Notification Handler with Callback
-    const handleNotification = useCallback((res) => {
-        console.log('Received notification:', res);
-        const isGroupMessage = Boolean(res.groupId);
-        const isChatOpen = isGroupMessage
-            ? currentChat?._id === res.groupId
-            : currentChat?.members?.some(id => id === res.senderId);
-        
-        setNotifications(prev => {
-            const isDuplicate = prev.some(n => n._id === res._id);
-            if (isDuplicate) return prev;
-
-            return isChatOpen 
-                ? [{ ...res, isRead: true }, ...prev]
-                : [res, ...prev];
-        });
-    }, [currentChat]);
-
+const handleNotification = useCallback((res) => {
+    console.log('Received notification:', res);
+  
+    // Ensure res has the necessary properties 
+    if (!res || !res.senderId) {  // Removed messageId check
+      console.error('Invalid notification format:', res);
+      return;
+    }
+  
+    const isGroupMessage = res.type === 'group' || Boolean(res.groupId); 
+    let isChatOpen = false;
+  
+    if (isGroupMessage) {
+      isChatOpen = currentChat?._id === res.groupId; 
+    } else {
+      isChatOpen = currentChat?.members?.some(id => id === res.senderId); 
+    }
+  
+    setNotifications(prev => {
+      //  Loại bỏ kiểm tra trùng lặp bằng messageId
+  
+      return isChatOpen 
+        ? [{ ...res, isRead: true }, ...prev] 
+        : [res, ...prev];
+    });
+  }, [currentChat]);
+const handleNotificationClick = (notification) => {
+    if (notification.groupId) {
+        // Redirect to sender's personal chat instead of group
+        const personalChat = userChats.find(chat => chat.members.includes(notification.senderId));
+        if (personalChat) {
+            updateCurrentChat(personalChat);
+        } else {
+            console.warn('Personal chat not found for sender:', notification.senderId);
+        }
+    } else {
+        const chat = userChats.find(chat => chat._id === notification.chatId);
+        if (chat) {
+            updateCurrentChat(chat);
+        } else {
+            console.warn('Chat not found for notification:', notification.chatId);
+        }
+    }
+};
     // Notification Socket Listener
     useEffect(() => {
         if (socket === null) return;
@@ -144,25 +171,49 @@ export const ChatContextProvider = ({ children, user }) => {
         getUsers();
     }, [userChats]);
 
-    useEffect(() => {
-        const getUserChats = async () => {
-            if (user?._id) {
-                setIsUserChatsLoading(true);
-                setUserChatsError(null);
+    // ... other code ...
 
-                const response = await getRequest(`${baseUrl}/chats/${user?._id}`);
+useEffect(() => {
+    const getUserChats = async () => {
+        if (user?._id) {
+            setIsUserChatsLoading(true);
+            setUserChatsError(null);
+    
+            try {
+                // Fetch user's one-on-one chats and groups
+                const [chatsResponse, groupsResponse] = await Promise.all([
+                    getRequest(`${baseUrl}/chats/${user?._id}`),
+                    getRequest(`${baseUrl}/groups/user/${user?._id}`)
+                ]);
+    
+                if (chatsResponse.error) {
+                    throw new Error(chatsResponse.message);
+                }
+    
+                if (groupsResponse.error) {
+                    throw new Error(groupsResponse.message);
+                }
+    
+                // Combine chats and groups
+                const allChats = [...chatsResponse, ...groupsResponse.map(group => ({
+                    ...group,
+                    isGroup: true, // Ensure group flag is set
+                    name: group.name // Ensure group name is included
+                }))];
+    
+                setUserChats(allChats);
+            } catch (error) {
+                setUserChatsError(error.message);
+            } finally {
+                setIsUserChatsLoading(false);
+            }
+        }
+    };
 
-                setIsUserChatsLoading(false);
+  getUserChats();
+}, [user, notifications]); // Re-fetch when user or notifications change
 
-                if (response.error) {
-                    setUserChatsError(response.message);
-                }
-
-                setUserChats(response);
-            }
-        };
-        getUserChats();
-    }, [user, notifications]);
+// ... other code ...
 
     // Messages Fetching
     useEffect(() => {
@@ -260,9 +311,12 @@ const sendFile = (file) => {
 
     // Chat and Notification Management Functions
     const updateCurrentChat = useCallback((chat) => {
-        setCurrentChat(chat);
-    }, []);
-
+    if (chat) {
+        setCurrentChat(chat);
+    } else {
+        console.error('Attempted to set a null or undefined chat.');
+    }
+}, []);
     const createChat = useCallback(async (firstId, secondId, isGroupChat = false, groupName = '') => {
         let endpoint = `${baseUrl}/chats`;
         let requestBody;
@@ -302,26 +356,38 @@ const sendFile = (file) => {
     }, []);
 
     // Mark Specific Notification as Read
-    const markAllNotificationAsRead = useCallback(
-        (n, userChats, user, notifications) => {
-            const desiredChat = userChats.find((chat) => {
-                const chatMembers = [user._id, n.senderId];
-                return chat?.members.every((member) => 
-                    chatMembers.includes(member)
-                );
-            });
-
-            const mNotifications = notifications.map((el) => 
-                n.senderId === el.senderId 
-                    ? { ...n, isRead: true } 
-                    : el
-            );
-
-            updateCurrentChat(desiredChat);
-            setNotifications(mNotifications);
-        },
-        []
-    );
+   const markAllNotificationAsRead = useCallback(
+    (n, userChats, user, notifications) => {
+      if (!n || !userChats || !user || !notifications) { 
+        console.error('Invalid input to markAllNotificationAsRead');
+        return;
+      }
+  
+      const desiredChat = userChats.find((chat) => {
+        if (n.groupId) { // Check if it's a group notification
+          return chat._id === n.groupId;
+        } else {
+          const chatMembers = [user._id, n.senderId];
+          return chat?.members.every(member => chatMembers.includes(member));
+        }
+      });
+  
+      if (!desiredChat) {
+        console.warn('Chat not found for notification:', n);
+        return;
+      }
+  
+      const mNotifications = notifications.map((el) =>
+        n._id === el._id  // Use _id for comparison
+          ? { ...n, isRead: true }
+          : el
+      );
+  
+      updateCurrentChat(desiredChat);
+      setNotifications(mNotifications);
+    },
+    []
+  );
 
     // Update User Chats
     const updateUserChats = useCallback(async () => {
@@ -373,6 +439,7 @@ const sendFile = (file) => {
                 markThisUserNotificationsAsRead,
                 updateUserChats,
                 sendFile,
+handleNotificationClick,
             }}
         >
             {children}
