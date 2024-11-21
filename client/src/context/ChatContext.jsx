@@ -6,403 +6,376 @@ import { io } from "socket.io-client";
 export const ChatContext = createContext();
 
 export const ChatContextProvider = ({ children, user }) => {
-    const [userChats, setUserChats] = useState(null);
-    const [isUserChatsLoading, setIsUserChatsLoading] = useState(false);
-    const [userChatsError, setUserChatsError] = useState(null);
-    const [potentialChats, setPotentialChats] = useState([]);
-    const [currentChat, setCurrentChat] = useState(null);
-    const [messages, setMessages] = useState([]);
-    const [isMessagesLoading, setIsMessagesLoading] = useState(false);
-    const [messagesError, setMessagesError] = useState(null);
-    const [sendTextMessageError, setSendTextMessageError] = useState(null);
-    const [newMessage, setNewMessage] = useState(null);
-    const [socket, setSocket] = useState(null);
-    const [onlineUsers, setOnlineUsers] = useState([]);
-    const [notifications, setNotifications] = useState([]);
-    const [allUsers, setAllUsers] = useState([]);
+    const [userChats, setUserChats] = useState(null);
+    const [isUserChatsLoading, setIsUserChatsLoading] = useState(false);
+    const [userChatsError, setUserChatsError] = useState(null);
+    const [potentialChats, setPotentialChats] = useState([]);
+    const [currentChat, setCurrentChat] = useState(null);
+    const [messages, setMessages] = useState([]);
+    const [isMessagesLoading, setIsMessagesLoading] = useState(false);
+    const [messagesError, setMessagesError] = useState(null);
+    const [sendTextMessageError, setSendTextMessageError] = useState(null);
+    const [newMessage, setNewMessage] = useState(null);
+    const [socket, setSocket] = useState(null);
+    const [onlineUsers, setOnlineUsers] = useState([]);
+    const [notifications, setNotifications] = useState([]);
+    const [allUsers, setAllUsers] = useState([]);
 
-    // console.log("onlineUsers", onlineUsers);
-    // console.log("notifications", notifications);
+    // Socket Connection
+    useEffect(() => {
+        const newSocket = io("http://localhost:3000");
+        setSocket(newSocket);
 
-    //CLIENT SIDE SOCKET
-    useEffect(() => {
-        const newSocket = io("http://localhost:3000");
-        setSocket(newSocket);
+        return () => {
+            newSocket.disconnect();
+        };
+    }, [user]);
 
-        return () => {
-            newSocket.disconnect();
-        };
-    }, [user]);
+    // Online Users Management
+    useEffect(() => {
+        if (socket === null) return;
+        socket.emit("addNewUser", user?._id);
+        socket.on("getOnlineUsers", (res) => {
+            setOnlineUsers(res);
+        });
+        return () => {
+            socket.off("getOnlineUsers");
+        };
+    }, [socket]);
 
-    useEffect(() => {
-        if (socket === null) return;
-        socket.emit("addNewUser", user?._id);
-        socket.on("getOnlineUsers", (res) => {
-            setOnlineUsers(res);
-        });
-        return () => {
-            socket.off("getOnlineUsers");
-        };
-    }, [socket]);
+    // Notification Handler with Callback
+    const handleNotification = useCallback((res) => {
+        console.log('Received notification:', res);
+        const isGroupMessage = Boolean(res.groupId);
+        const isChatOpen = isGroupMessage
+            ? currentChat?._id === res.groupId
+            : currentChat?.members?.some(id => id === res.senderId);
+        
+        setNotifications(prev => {
+            const isDuplicate = prev.some(n => n._id === res._id);
+            if (isDuplicate) return prev;
 
-    useEffect(() => {
-        if (socket === null) return;
-        const handleNotification = (res) => {
-            console.log('Received notification:', res);
-            const isGroupMessage = Boolean(res.groupId);
-            const isChatOpen = isGroupMessage
-                ? currentChat?._id === res.groupId // For group messages
-                : currentChat?.members?.some(id => id === res.senderId); // For 1-on-1 messages
-            setNotifications(prev => {
-                const isDuplicate = prev.some(n => n._id === res._id);
-                if (isDuplicate) {
-                    return prev;
-                }
+            return isChatOpen 
+                ? [{ ...res, isRead: true }, ...prev]
+                : [res, ...prev];
+        });
+    }, [currentChat]);
 
-                if (isChatOpen) {
-                    return [{ ...res, isRead: true }, ...prev];
-                } else {
-                    return [res, ...prev];
-                }
-            });
-        };
+    // Notification Socket Listener
+    useEffect(() => {
+        if (socket === null) return;
+        socket.on('getNotification', handleNotification);
 
-        socket.on('getNotification', handleNotification);
+        return () => {
+            socket.off('getNotification', handleNotification);
+        };
+    }, [socket, handleNotification]);
 
-        return () => {
-            socket.off('getNotification', handleNotification);
-        };
-    }, [socket, currentChat]);
+    // Message Handling for Group and Personal Chats
+    useEffect(() => {
+    if (currentChat && currentChat.isGroup) {
+        const groupId = currentChat._id;
+        socket.emit('joinGroup', groupId);
+    }
+    if (socket === null) return;
 
-    //send message
-    useEffect(() => {
-        if (currentChat && currentChat.isGroup) {
-            const groupId = currentChat._id;
-            console.log('Chuẩn bị tham gia nhóm:', groupId);
-            socket.emit('joinGroup', groupId);
-            console.log('Đã gửi yêu cầu tham gia nhóm:', groupId);
-        }
-        if (socket === null) return;
+    const handleNewMessage = (res) => {
+        if (currentChat?._id !== res.chatId) return;
+        setMessages((prev) => Array.isArray(prev) ? [...prev, res] : [res]);
+    };
 
-        const handleNewMessage = () => {
-            if (currentChat?._id !== res.chatId) return;
-            setMessages((prev) => {
-                // Kiểm tra tin nhắn trùng lặp
-                if (prev.some(msg => msg._id === res._id)) {
-                    return prev;
-                }
-                return [...prev, res];
-            });
-        };
+    const handleNewGroupMessage = (res) => {
+        if (currentChat?._id !== res.groupId) return;
+        setMessages((prev) => Array.isArray(prev) ? [...prev, res] : [res]);
+    };
 
-        const handleNewGroupMessage = (res) => {
-            if (currentChat?._id !== res.groupId) return;
-            setMessages((prev) => {
-                // Kiểm tra tin nhắn trùng lặp  
-                if (prev.some(msg => msg._id === res._id)) {
-                    return prev;
-                }
-                return [...prev, res];
-            });
-        };
-
-        const handleNotification = (res) => {
-            const isGroupMessage = Boolean(res.groupId);
-            const isChatOpen = isGroupMessage
-                ? currentChat?._id === res.groupId // For group messages
-                : currentChat?.members?.some(id => id === res.senderId); // For 1-on-1 messages
-            if (isChatOpen) {
-                setNotifications(prev => Array.isArray(prev) ?
-                    [{ ...res, isRead: true }, ...prev] : [{ ...res, isRead: true }]);
+    const handleNewFile = (res) => {
+        if (currentChat?._id !== res.chatId) return;
+        setMessages(prev => {
+            // Tìm vị trí của tin nhắn file trong mảng messages
+            const index = prev.findIndex(m => m._id === res._id);
+            if (index === -1) {
+                // Nếu không tìm thấy, thêm tin nhắn mới vào đầu mảng
+                return [res, ...prev];
             } else {
-                setNotifications(prev => Array.isArray(prev) ? [res, ...prev] : [res]);
+                // Nếu tìm thấy, cập nhật tin nhắn file
+                const updatedMessages = [...prev];
+                updatedMessages[index] = res;
+                return updatedMessages;
             }
-        };
-
-        socket.on("getMessage", handleNewMessage);
-        socket.on("getGroupMessage", handleNewGroupMessage);
-        socket.on("getNotification", handleNotification);
-
-
-        return () => {
-            socket.off("getMessage", handleNewMessage);
-            socket.off("getGroupMessage", handleNewGroupMessage);
-            socket.off("getNotification", handleNotification);
-
-        };
-    }, [socket, currentChat]);
-
-    useEffect(() => {
-        const getUsers = async () => {
-            const response = await getRequest(`${baseUrl}/users`);
-
-            if (response.error) {
-                return console.log("Error fetching users", response);
-            }
-
-            const pChats = response?.filter((u) => {
-                let isChatCreated = false;
-
-                if (user?._id === u._id) return false;
-
-                if (userChats) {
-                    isChatCreated = userChats?.some((chat) => {
-                        return chat.members[0] === u._id || chat.members[1] === u._id;
-                    });
-                }
-
-                return !isChatCreated;
-            });
-
-            setPotentialChats(pChats);
-            setAllUsers(response);
-        };
-
-        getUsers();
-    }, [userChats]);
-
-    useEffect(() => {
-        const getUserChats = async () => {
-            if (user?._id) {
-                setIsUserChatsLoading(true);
-                setUserChatsError(null);
-
-                const response = await getRequest(`${baseUrl}/chats/${user?._id}`);
-
-                setIsUserChatsLoading(false);
-
-                if (response.error) {
-                    setUserChatsError(response.message);
-                }
-
-                setUserChats(response);
-            }
-
-        };
-        getUserChats();
-
-    }, [user, notifications]);
-
-    useEffect(() => {
-        const getMessages = async () => {
-            setIsMessagesLoading(true);
-            setMessagesError(null);
-
-            const response = await getRequest(
-                `${baseUrl}/messages/${currentChat?._id}`
-            );
-
-            setIsMessagesLoading(false);
-
-            if (response.error) {
-                return setMessagesError(response);
-            }
-
-            setMessages(response);
-        };
-
-        getMessages();
-    }, [currentChat]);
-
-    useEffect(() => {
-        if (socket === null) return;
-        socket.on("getMessage", (message) => {
-            // Xử lý tin nhắn nhận được
-            console.log("Received message:", message);
-            // Cập nhật giao diện người dùng với tin nhắn mới
         });
+    };
 
-        socket.on("getGroupMessage", (message) => {
-            // Xử lý tin nhắn nhóm nhận được
-            console.log("Received group message:", message);
-            // Cập nhật giao diện người dùng với tin nhắn nhóm mới
-        });
 
-        return () => {
-            socket.off("getMessage");
-            socket.off("getGroupMessage");
-        };
-    }, [socket]);
+    socket.on("getMessage", handleNewMessage);
+    socket.on("getGroupMessage", handleNewGroupMessage);
+    socket.on("newFile", handleNewFile); // Lắng nghe sự kiện newFile
 
-    const sendTextMessage = useCallback(
-        async (textMessage, sender, currentChatId, setTextMessage) => {
-            if (!textMessage) return console.log("You must type a message");
+    return () => {
+        socket.off("getMessage", handleNewMessage);
+        socket.off("getGroupMessage", handleNewGroupMessage);
+        socket.off("newFile", handleNewFile); // Hủy lắng nghe sự kiện newFile
+    };
+}, [socket, currentChat]);
 
-            const isGroupChat = currentChat?.isGroup;
-            const endpoint = `${baseUrl}/messages`;
+    // Users and Chats Fetching
+    useEffect(() => {
+        const getUsers = async () => {
+            const response = await getRequest(`${baseUrl}/users`);
 
-            const messageData = {
-                chatId: currentChatId,
-                senderId: sender._id,
-                text: textMessage,
-                isGroupMessage: isGroupChat
-            };
+            if (response.error) {
+                return console.log("Error fetching users", response);
+            }
 
-            try {
-                const response = await postRequest(endpoint, JSON.stringify(messageData));
+            const pChats = response?.filter((u) => {
+                if (user?._id === u._id) return false;
 
-                if (response.error) {
-                    setSendTextMessageError(response);
-                    return;
-                }
+                return userChats 
+                    ? !userChats.some((chat) => 
+                        chat.members[0] === u._id || chat.members[1] === u._id
+                    )
+                    : true;
+            });
 
-                setNewMessage(response);
-                setMessages((prev) => Array.isArray(prev) ? [...prev, response] : [response]);
-                setTextMessage("");
+            setPotentialChats(pChats);
+            setAllUsers(response);
+        };
 
-                // Emit socket event based on chat type
-                if (isGroupChat) {
-                    socket?.emit("sendGroupMessage", {
-                        ...response,
-                        groupId: currentChatId,
-                    });
-                } else {
-                    const recipientId = currentChat.members.find(id => id !== sender._id);
-                    socket?.emit("sendMessage", {
-                        ...response,
-                        recipientId,
-                    });
-                }
-            } catch (error) {
-                console.error("Error sending message:", error);
-                setSendTextMessageError(error);
+        getUsers();
+    }, [userChats]);
+
+    useEffect(() => {
+        const getUserChats = async () => {
+            if (user?._id) {
+                setIsUserChatsLoading(true);
+                setUserChatsError(null);
+
+                const response = await getRequest(`${baseUrl}/chats/${user?._id}`);
+
+                setIsUserChatsLoading(false);
+
+                if (response.error) {
+                    setUserChatsError(response.message);
+                }
+
+                setUserChats(response);
+            }
+        };
+        getUserChats();
+    }, [user, notifications]);
+
+    // Messages Fetching
+    useEffect(() => {
+        const getMessages = async () => {
+            setIsMessagesLoading(true);
+            setMessagesError(null);
+
+            const response = await getRequest(
+                `${baseUrl}/messages/${currentChat?._id}`
+            );
+
+            setIsMessagesLoading(false);
+
+            if (response.error) {
+                return setMessagesError(response);
+            }
+
+            setMessages(response);
+        };
+
+        getMessages();
+    }, [currentChat]);
+
+    // File Sending Function
+    // Trong component ChatContextProvider
+const sendFile = (file) => {
+    if (socket) {
+        console.log("Bắt đầu gửi file:", file); // Log trước khi gửi file
+
+        socket.emit('sendFile', {
+            chatId: currentChat._id,
+            senderId: user._id,
+            recipientId: currentChat.isGroup ? null : currentChat.members.find(id => id !== user._id),
+            groupId: currentChat.isGroup ? currentChat._id : null,
+            file: file
+        }, (response) => {
+            if (response.status === "sent") {
+                console.log("File sent successfully");
+            } else {
+                console.error("File sending error:", response.error);
             }
-        },
-        [currentChat, socket]
-    );
-
-    const updateCurrentChat = useCallback((chat) => {
-        setCurrentChat(chat);
-    }, []);
-
-    const createChat = useCallback(async (firstId, secondId, isGroupChat = false, groupName = '') => {
-        // console.log("createChat called with:", { firstId, secondId, isGroupChat, groupName });
-
-        let endpoint = `${baseUrl}/chats`;
-        let requestBody;
-
-        if (isGroupChat) {
-            const members = Array.isArray(secondId) ? secondId : [secondId];
-
-            endpoint = `${baseUrl}/groups`;
-            requestBody = {
-                name: groupName,
-                members: members.map(member => ({ user: member, role: 'member' })),
-            };
-
-            console.log("Creating a group chat with the following details:", requestBody);
-        } else {
-            requestBody = {
-                firstId,
-                secondId,
-            };
-
-            // console.log("Creating a personal chat with the following details:", requestBody);
-        }
-
-        const response = await postRequest(endpoint, JSON.stringify(requestBody));
-
-        if (response.error) {
-            return console.log("Error creating chat", response);
-        }
-
-        setUserChats((prev) => Array.isArray(prev) ? [...prev, response] : [response]);
-    }, []);
-
-    const markAllNotificationsAsRead = useCallback((notifications) => {
-        const mNotification = notifications.map((n) => {
-            return { ...n, isRead: true };
         });
+    } else {
+        console.error("Socket.IO not initialized.");
+    }
+};
 
-        setNotifications(mNotification);
+    // Text Message Sending with Socket Emission
+    const sendTextMessage = useCallback(
+        async (textMessage, sender, currentChatId, setTextMessage) => {
+            if (!textMessage) return console.log("You must type a message");
 
-    }, []);
+            const isGroupChat = currentChat?.isGroup;
+            const endpoint = `${baseUrl}/messages`;
 
-    const markAllNotificationAsRead = useCallback(
-        (n, userChats, user, notifications) => {
-            //find chat to open
+            const messageData = {
+                chatId: currentChatId,
+                senderId: sender._id,
+                text: textMessage,
+                isGroupMessage: isGroupChat
+            };
 
-            const desiredChat = userChats.find((chat) => {
-                const chatMembers = [user._id, n.senderId];
-                const isDesiredChat = chat?.members.every((member) => {
-                    return chatMembers.includes(member);
-                });
+            try {
+                const response = await postRequest(endpoint, JSON.stringify(messageData));
 
-                return isDesiredChat;
-            });
-            // mark notification as read
-            const mNotifications = notifications.map((el) => {
-                if (n.senderId === el.senderId) {
-                    return { ...n, isRead: true };
-                } else {
-                    return el;
-                }
+                if (response.error) {
+                    setSendTextMessageError(response);
+                    return;
+                }
 
-            });
+                setNewMessage(response);
+                setMessages((prev) => Array.isArray(prev) ? [...prev, response] : [response]);
+                setTextMessage("");
 
-            updateCurrentChat(desiredChat);
-            setNotifications(mNotifications);
-        },
-        []
-    );
+                // Emit socket event based on chat type
+                if (isGroupChat) {
+                    socket?.emit("sendGroupMessage", {
+                        ...response,
+                        groupId: currentChatId,
+                    });
+                } else {
+                    const recipientId = currentChat.members.find(id => id !== sender._id);
+                    socket?.emit("sendMessage", {
+                        ...response,
+                        recipientId,
+                    });
+                }
+            } catch (error) {
+                console.error("Error sending message:", error);
+                setSendTextMessageError(error);
+            }
+        },
+        [currentChat, socket]
+    );
 
-    const updateUserChats = useCallback(async () => {
-        if (user?._id) {
-            const response = await getRequest(`${baseUrl}/chats/${user?._id}`);
-            if (response.error) {
-                return setUserChatsError(response.message);
-            }
-            setUserChats(response);
-        }
-    }, [user?._id]); // Chỉ re-create hàm khi user._id thay đổi
+    // Chat and Notification Management Functions
+    const updateCurrentChat = useCallback((chat) => {
+        setCurrentChat(chat);
+    }, []);
 
-    const markThisUserNotificationsAsRead = useCallback(
-        (thisUserNotifications, notifications) => {
-            //mark notifications as read
+    const createChat = useCallback(async (firstId, secondId, isGroupChat = false, groupName = '') => {
+        let endpoint = `${baseUrl}/chats`;
+        let requestBody;
 
-            const mNotifications = notifications.map((el) => {
-                let notification;
+        if (isGroupChat) {
+            const members = Array.isArray(secondId) ? secondId : [secondId];
 
-                thisUserNotifications.forEach((n) => {
-                    if (n.senderId === el.senderId) {
-                        notification = { ...n, isRead: true };
-                    } else {
-                        notification = el;
-                    }
-                });
-                return notification;
-            });
-            setNotifications(mNotifications);
-        },
-        []
-    );
+            endpoint = `${baseUrl}/groups`;
+            requestBody = {
+                name: groupName,
+                members: members.map(member => ({ user: member, role: 'member' })),
+            };
+        } else {
+            requestBody = {
+                firstId,
+                secondId,
+            };
+        }
 
-    return (
-        <ChatContext.Provider
-            value={{
-                userChats,
-                isUserChatsLoading,
-                userChatsError,
-                potentialChats,
-                createChat,
-                updateCurrentChat,
-                messages,
-                isMessagesLoading,
-                messagesError,
-                currentChat,
-                sendTextMessage,
-                onlineUsers,
-                notifications,
-                allUsers,
-                sendTextMessageError,
-                markAllNotificationsAsRead,
-                markAllNotificationAsRead,
-                markThisUserNotificationsAsRead,
-                updateUserChats,
+        const response = await postRequest(endpoint, JSON.stringify(requestBody));
 
-            }}
-        >
-            {children}
-        </ChatContext.Provider>
-    );
+        if (response.error) {
+            return console.log("Error creating chat", response);
+        }
+
+        setUserChats((prev) => Array.isArray(prev) ? [...prev, response] : [response]);
+    }, []);
+
+    // Mark All Notifications as Read
+    const markAllNotificationsAsRead = useCallback((notifications) => {
+        const mNotification = notifications.map((n) => ({
+            ...n, 
+            isRead: true 
+        }));
+
+        setNotifications(mNotification);
+    }, []);
+
+    // Mark Specific Notification as Read
+    const markAllNotificationAsRead = useCallback(
+        (n, userChats, user, notifications) => {
+            const desiredChat = userChats.find((chat) => {
+                const chatMembers = [user._id, n.senderId];
+                return chat?.members.every((member) => 
+                    chatMembers.includes(member)
+                );
+            });
+
+            const mNotifications = notifications.map((el) => 
+                n.senderId === el.senderId 
+                    ? { ...n, isRead: true } 
+                    : el
+            );
+
+            updateCurrentChat(desiredChat);
+            setNotifications(mNotifications);
+        },
+        []
+    );
+
+    // Update User Chats
+    const updateUserChats = useCallback(async () => {
+        if (user?._id) {
+            const response = await getRequest(`${baseUrl}/chats/${user?._id}`);
+            if (response.error) {
+                return setUserChatsError(response.message);
+            }
+            setUserChats(response);
+        }
+    }, [user?._id]);
+
+    // Mark User-Specific Notifications as Read
+    const markThisUserNotificationsAsRead = useCallback(
+        (thisUserNotifications, notifications) => {
+            const mNotifications = notifications.map((el) => {
+                const matchingNotification = thisUserNotifications.find(
+                    n => n.senderId === el.senderId
+                );
+                return matchingNotification 
+                    ? { ...matchingNotification, isRead: true } 
+                    : el;
+            });
+            setNotifications(mNotifications);
+        },
+        []
+    );
+
+    return (
+        <ChatContext.Provider
+            value={{
+                userChats,
+                isUserChatsLoading,
+                userChatsError,
+                potentialChats,
+                createChat,
+                updateCurrentChat,
+                messages,
+                isMessagesLoading,
+                messagesError,
+                currentChat,
+                sendTextMessage,
+                onlineUsers,
+                notifications,
+                allUsers,
+                sendTextMessageError,
+                markAllNotificationsAsRead,
+                markAllNotificationAsRead,
+                markThisUserNotificationsAsRead,
+                updateUserChats,
+                sendFile,
+            }}
+        >
+            {children}
+        </ChatContext.Provider>
+    );
 };

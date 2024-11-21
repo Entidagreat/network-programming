@@ -11,10 +11,14 @@ const Notification = () => {
 
     const [isOpen, setIsOpen] = useState(false);
     const { user } = useContext(AuthContext);
-    const { notifications, userChats, allUsers, markAllNotificationsAsRead, markAllNotificationAsRead } =
-        useContext(ChatContext);
+    const { notifications, userChats, allUsers, markAllNotificationsAsRead, markAllNotificationAsRead } =useContext(ChatContext);
 
-
+        const chatContext = useContext(ChatContext);
+    
+        if (!chatContext) {
+            console.error("ChatContext is undefined. Ensure that Notification is wrapped with ChatContext.Provider.");
+            return null;
+        }
     const unreadNotifications = unreadNotificationsFunc(notifications);
 
     const { language } = useLanguage();

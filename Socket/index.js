@@ -1,5 +1,3 @@
-// server.js
-
 const { Server } = require("socket.io");
 const messageModel = require("../Server/Models/messageModel"); 
 const multer = require('multer');
@@ -237,7 +235,7 @@ io.on("connection", (socket) => {
   
       const originalFilename = file.originalname || 'unknown';
   
-      const uploadStream = cloudinary.uploader.upload_stream(
+      cloudinary.uploader.upload_stream(
         {
           folder: 'chat_files',
           resource_type: 'auto',
