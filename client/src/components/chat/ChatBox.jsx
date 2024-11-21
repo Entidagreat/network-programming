@@ -16,7 +16,7 @@ import { baseUrl } from "../../utils/services";
 
 const ChatBox = () => {
   const { user } = useContext(AuthContext);
-  const { currentChat, messages, isMessagesLoading, sendTextMessage, socket,sendFile } = useContext(ChatContext); // Lấy socket từ context
+  const { currentChat, messages, isMessagesLoading, sendTextMessage, socket,sendFile,notification } = useContext(ChatContext); // Lấy socket từ context
   const { recipientUser } = useFetchRecipientUser(currentChat, user);
   const [textMessage, setTextMessage] = useState("");
   const [translatedMessages, setTranslatedMessages] = useState({});
@@ -27,6 +27,7 @@ const ChatBox = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const fileInputRef = useRef(null);
   const [memberUsernames, setMemberUsernames] = useState([]);
+  const [showUsernames, setShowUsernames] = useState(false);
 
     const handleIconClick = () => {
         fileInputRef.current.click();
@@ -60,7 +61,13 @@ const ChatBox = () => {
   //     newSocket.disconnect();
   //   };
   // }, []);
-
+  useEffect(() => {
+    if (currentChat?.isGroup) {
+      setTimeout(() => {
+        setShowUsernames(true);
+      }, 500); // Delay 500 milliseconds
+    }
+  }, [currentChat]);
   useEffect(() => {
     console.log('currentChat:', currentChat);
     console.log('message:', messages);
@@ -102,35 +109,34 @@ const ChatBox = () => {
   }, [currentChat, messages]);
 
 
-    useEffect(() => {
-      const fetchUsernames = async () => {
-        if (currentChat?.members) {
-          try {
+  useEffect(() => {
+    const fetchUsernames = async () => {
+      if (currentChat?.members && currentChat.isGroup) { 
+        try {
+          setTimeout(async () => {
             const users = await Promise.all(
-              currentChat.members.map(async (memberId) => {
-                const response = await fetch(`${baseUrl}/users/find/${memberId}`);
+              currentChat.members.map(async (memberId) => { // Change from (member) to (memberId)
+                const response = await fetch(`${baseUrl}/users/find/${memberId}`); // Use memberId directly
                 if (!response.ok) {
                   throw new Error(`Không thể lấy thông tin người dùng với ID ${memberId}`);
                 }
-                return await response.json(); // Trả về toàn bộ đối tượng user
+                return await response.json();
               })
             );
-    
-            // Lấy danh sách usernames từ danh sách users
-            const usernames = users.map(user => user.name); 
-            console.log('usernames:', usernames); 
-    
-            setMemberUsernames(usernames);     
-          } catch (error) {
-            console.error("Lỗi khi lấy tên người dùng:", error);
-            // ... Xử lý lỗi ...
-          }
+  
+            const usernames = users.map(user => user.name);
+            console.log('usernames:', usernames);
+            setMemberUsernames(usernames);
+            console.log('memberUsernames:', memberUsernames);
+          }, 100);
+        } catch (error) {
+          console.error("Lỗi khi lấy tên người dùng:", error);
         }
-      };
-    
-      fetchUsernames();
-    }, [currentChat, baseUrl]);
-
+      }
+    };
+  
+    fetchUsernames();
+  }, [currentChat, baseUrl]);
     useEffect(() => {
       console.log('memberUsernames updated:', memberUsernames);
     }, [memberUsernames]);
@@ -208,17 +214,17 @@ const ChatBox = () => {
             onMouseLeave={() => setHoveredMessageId(null)}
             ref={scroll}
           >
-            {/* Hiển thị tên người gửi */}
-{message?.senderId !== user?._id && (
-  <div className="sender-name">
-    {currentChat?.isGroup ? (
-      // Hiển thị tên người gửi trong nhóm (sử dụng memberUsernames)
-      memberUsernames.find((username, index) => currentChat.members[index] === message?.senderId) || 'Unknown User' 
-    ) : (
-      // Hiển thị tên người nhận trong tin nhắn 1-1
-      recipientUser?.name || 'Unknown User' 
-    )}
-  </div>
+           {/* Hiển thị tên người gửi */}
+           {message?.senderId !== user?._id && (
+ <div className="sender-name">
+ {currentChat?.isGroup && showUsernames ? (
+   // Hiển thị tên người gửi trong nhóm
+   memberUsernames.find((username, index) => currentChat.members[index] === message?.senderId) || 'Unknown User'
+ ) : (
+   // Hiển thị tên người nhận trong tin nhắn 1-1
+   recipientUser?.name || 'Unknown User'
+ )}
+</div>
 )}
          <div className="message-content" style={{ 
           position: 'relative', 

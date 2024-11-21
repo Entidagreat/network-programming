@@ -150,7 +150,7 @@ const loginUser = async (req, res) => {
     }
 };
 const findUser = async (req, res) => {
-    const userId = req.params.userId;
+    const userId = typeof req.params.userId === 'string' ? req.params.userId : null; 
     try {
         const user = await userModel.findById(userId);
 

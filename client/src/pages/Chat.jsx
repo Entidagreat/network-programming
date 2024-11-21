@@ -27,7 +27,7 @@ const Chat = () => {
     }
     return acc;
   }, []);
-
+  
   // Lọc danh sách user dựa trên searchQuery
   const filteredUsers = allUsers.filter((user) =>
     user.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -37,11 +37,10 @@ const Chat = () => {
     <Container>
       <Stack direction="horizontal" gap={4} className="align-items-start">
         <Stack className="messages-box flex-grow-0 pe-3" gap={3}>
-          <div className="chat-list" style={{ position: "relative" }}>
             {<div
               style={{
-                position: "sticky",
-                top: 0,
+                position: "relative",
+                top: 30,
                 zIndex: 1,
               }}
             >
@@ -53,6 +52,7 @@ const Chat = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>}
+          <div className="chat-list" style={{ position: "relative" }}>
             <PotentialChats
               setRefresh={setRefresh}
               searchQuery={searchQuery}
