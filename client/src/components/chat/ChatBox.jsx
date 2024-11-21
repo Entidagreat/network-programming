@@ -16,7 +16,7 @@ import { baseUrl } from "../../utils/services";
 
 const ChatBox = () => {
   const { user } = useContext(AuthContext);
-  const { currentChat, messages, isMessagesLoading, sendTextMessage, socket } = useContext(ChatContext); // Lấy socket từ context
+  const { currentChat, messages, isMessagesLoading, sendTextMessage, socket,sendFile } = useContext(ChatContext); // Lấy socket từ context
   const { recipientUser } = useFetchRecipientUser(currentChat, user);
   const [textMessage, setTextMessage] = useState("");
   const [translatedMessages, setTranslatedMessages] = useState({});
@@ -25,6 +25,20 @@ const ChatBox = () => {
   const { language } = useLanguage();
   const t = translations[language];
   const [selectedFile, setSelectedFile] = useState(null);
+  const fileInputRef = useRef(null);
+  const [memberUsernames, setMemberUsernames] = useState([]);
+
+    const handleIconClick = () => {
+        fileInputRef.current.click();
+    };
+
+    const handleFileChange = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            sendFile(file);
+        }
+    };
+
 
   useEffect(() => {
     if (language === 'vn') {
@@ -46,6 +60,17 @@ const ChatBox = () => {
   //     newSocket.disconnect();
   //   };
   // }, []);
+
+  useEffect(() => {
+    console.log('currentChat:', currentChat);
+    console.log('message:', messages);
+  
+    if (currentChat?.members) {
+      currentChat.members.forEach((memberId, index) => { // Access memberId directly
+        console.log(`member ${index + 1}:`, memberId); 
+      });
+    }
+  }, [currentChat, messages]);
   useEffect(() => {
     setTranslatedMessages({});
   }, [currentChat]);
@@ -76,73 +101,41 @@ const ChatBox = () => {
     console.log('member:', currentChat?.members);
   }, [currentChat, messages]);
 
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
-    setSelectedFile(file);
 
-    if (socket) {
-      console.log("Dữ liệu gửi đi:", { 
-        chatId: currentChat._id,
-        senderId: user._id,
-        recipientId: currentChat.isGroup ? null : currentChat.members.find(id => id !== user._id),
-        groupId: currentChat.isGroup ? currentChat._id : null,
-        file: file
-      });
-
-      socket.emit('sendFile', { 
-        chatId: currentChat._id,
-        senderId: user._id,
-        recipientId: currentChat.isGroup ? null : currentChat.members.find(id => id !== user._id),
-        groupId: currentChat.isGroup ? currentChat._id : null,
-        file: file 
-      }, (response) => {
-        if (response.status === "sent") {
-          console.log("File đã được gửi thành công", response); 
-          setMessages(prevMessages => [...prevMessages, response.newMessage]); 
-        } else {
-          console.error("Lỗi gửi file:", response.error);
+    useEffect(() => {
+      const fetchUsernames = async () => {
+        if (currentChat?.members) {
+          try {
+            const users = await Promise.all(
+              currentChat.members.map(async (memberId) => {
+                const response = await fetch(`${baseUrl}/users/find/${memberId}`);
+                if (!response.ok) {
+                  throw new Error(`Không thể lấy thông tin người dùng với ID ${memberId}`);
+                }
+                return await response.json(); // Trả về toàn bộ đối tượng user
+              })
+            );
+    
+            // Lấy danh sách usernames từ danh sách users
+            const usernames = users.map(user => user.name); 
+            console.log('usernames:', usernames); 
+    
+            setMemberUsernames(usernames);     
+          } catch (error) {
+            console.error("Lỗi khi lấy tên người dùng:", error);
+            // ... Xử lý lỗi ...
+          }
         }
-      });
-    }
-  };
+      };
+    
+      fetchUsernames();
+    }, [currentChat, baseUrl]);
 
-  const sendFile = (file) => {
-    if (socket) {
-      socket.emit('sendFile', { 
-        chatId: currentChat._id,
-        senderId: user._id,
-        recipientId: currentChat.isGroup ? null : currentChat.members.find(id => id !== user._id),
-        groupId: currentChat.isGroup ? currentChat._id : null,
-        file: file 
-      }, (response) => {
-        if (response.status === "sent") {
-          console.log("File đã được gửi thành công");
-          // Cập nhật UI
-        } else {
-          console.error("Lỗi gửi file:", response.error);
-          // Hiển thị thông báo lỗi
-        }
-      });
-    } else {
-      console.error("Socket.IO chưa được khởi tạo.");
-      // Xử lý lỗi, ví dụ: hiển thị thông báo cho người dùng
-    }
-  };
+    useEffect(() => {
+      console.log('memberUsernames updated:', memberUsernames);
+    }, [memberUsernames]);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    
   const handleTranslate = async (message) => {
     try {
       if (translatedMessages[message._id]) {
@@ -215,19 +208,18 @@ const ChatBox = () => {
             onMouseLeave={() => setHoveredMessageId(null)}
             ref={scroll}
           >
-             {/* Hiển thị tên người gửi */}
-             {message?.senderId !== user?._id && (
-              <div className="sender-name">
-                {currentChat?.isGroup ? (
-                  // Hiển thị tên người gửi trong nhóm
-                  currentChat.members.find(member => member.user === message?.senderId)?.username || 'Unknown User' 
-                ) : (
-                  // Hiển thị tên người nhận trong tin nhắn 1-1
-                  recipientUser?.name || 'Unknown User' 
-                )}
-              </div>
-            )}
-
+            {/* Hiển thị tên người gửi */}
+{message?.senderId !== user?._id && (
+  <div className="sender-name">
+    {currentChat?.isGroup ? (
+      // Hiển thị tên người gửi trong nhóm (sử dụng memberUsernames)
+      memberUsernames.find((username, index) => currentChat.members[index] === message?.senderId) || 'Unknown User' 
+    ) : (
+      // Hiển thị tên người nhận trong tin nhắn 1-1
+      recipientUser?.name || 'Unknown User' 
+    )}
+  </div>
+)}
          <div className="message-content" style={{ 
           position: 'relative', 
           flexGrow: 1 ,
@@ -283,9 +275,7 @@ const ChatBox = () => {
     <div className="sender-name" style={{display:'flex', position:'rela', alignItems:'center'}}>
       {currentChat?.isGroup ? (
         // For group chat, show sender's username
-        currentChat.members?.find(member => 
-          member.user === message?.senderId
-        )?.username || 'Unknown User'
+        memberUsernames.find((username, index) => currentChat.members[index] === message?.senderId)|| 'Unknown User'
       ) : (
         // For direct chat, show recipient's name
         recipientUser?.name || 'Unknown User'
@@ -359,24 +349,25 @@ const ChatBox = () => {
         />
           </div>
           <input 
-  type="file" 
-  id="fileInput" 
-  style={{ display: 'none' }} 
-  onChange={handleFileChange} // Gọi hàm xử lý khi chọn file
-/>
-                 <button
-           className="send-file"
-           onClick={() => document.getElementById('fileInput').click()} // Kích hoạt input file
-           style={{
-            color: '#37342d',
-            backgroundColor: 'transparent',
-            border: 'none',
-            outline: 'none',
-            padding: 0,
-            cursor: 'pointer',
-            fontSize: 'inherit'
-          }}
-          >
+                type="file" 
+                id="fileInput" 
+                style={{ display: 'none' }} 
+                ref={fileInputRef}
+                onChange={handleFileChange} // Handle file selection
+            />
+                  <button
+                className="send-file"
+                onClick={handleIconClick} // Trigger file input
+                style={{
+                    color: '#37342d',
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    outline: 'none',
+                    padding: 0,
+                    cursor: 'pointer',
+                    fontSize: 'inherit'
+                }}
+            >
             <svg 
             xmlns="http://www.w3.org/2000/svg" 
             width="22" 

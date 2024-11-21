@@ -27,8 +27,8 @@ const Notification = () => {
     const modifiedNotifications = notifications.map((n) => {
         const sender = allUsers.find(user => user._id === n.senderId);
         const group = userChats.find(chat => chat._id === n.groupId);
-        console.log("sender", sender);
-        console.log("group", group);
+        // console.log("sender", sender);
+        // console.log("group", group);
         return {
             ...n,
             senderName: sender?.name || group?.name || 'Unknown',

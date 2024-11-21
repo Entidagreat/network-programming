@@ -239,9 +239,10 @@ useEffect(() => {
 
     // File Sending Function
     // Trong component ChatContextProvider
+// Trong component ChatContextProvider
 const sendFile = (file) => {
     if (socket) {
-        console.log("Bắt đầu gửi file:", file); // Log trước khi gửi file
+        console.log("Bắt đầu gửi file:", file); // Log trước khi gửi
 
         socket.emit('sendFile', {
             chatId: currentChat._id,
@@ -260,7 +261,6 @@ const sendFile = (file) => {
         console.error("Socket.IO not initialized.");
     }
 };
-
     // Text Message Sending with Socket Emission
     const sendTextMessage = useCallback(
         async (textMessage, sender, currentChatId, setTextMessage) => {

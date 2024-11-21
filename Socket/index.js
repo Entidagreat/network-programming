@@ -226,134 +226,79 @@ io.on("connection", (socket) => {
   });
 
   // Send file
-  const uploadToCloudinary = (file) => {
-    return new Promise((resolve, reject) => {
-      // Add more robust error handling
-      if (!file) {
-        return reject(new Error('No file provided'));
-      }
-  
-      const originalFilename = file.originalname || 'unknown';
-  
-      cloudinary.uploader.upload_stream(
-        {
-          folder: 'chat_files',
-          resource_type: 'auto',
-          public_id: originalFilename,
-          overwrite: true,
-          use_filename: true,
-          unique_filename: true,
-        },
-        (error, result) => {
-          if (error) {
-            console.error("Cloudinary upload error:", error);
-            reject(error);
-          } else {
-            console.log("Cloudinary upload successful:", result.secure_url);
-            resolve(result);
-          }
-        }
-      ).end(file);
-    });
-  };
-  
   socket.on("sendFile", async (data, callback) => {
     try {
-      const { recipientId, groupId, chatId, file } = data;
-  
-      // Validate input
-      if (!chatId) throw new Error('Missing chatId');
-      if (!socket.userId) throw new Error('Missing socket.userId');
-      if (!file) throw new Error('Missing file');
-  
-      const senderId = groupId || socket.userId;
-      if (!senderId) throw new Error('Missing senderId');
-  
-      // Add retry mechanism for upload and database save
-      const maxRetries = 3;
-      let retries = 0;
-  
-      while (retries < maxRetries) {
+        console.log("Dữ liệu nhận được từ client:", data);
+
+        const { recipientId, groupId, chatId, file } = data;
+
+        if (!chatId) throw new Error('Missing chatId');
+        if (!socket.userId) throw new Error('Missing socket.userId');
+
+        const senderId = groupId || socket.userId;
+
+        if (!senderId) throw new Error('Missing senderId');
+        if (!file) throw new Error('Missing file');
+
+        console.log("Trước khi upload lên Cloudinary");
+        const uploadResult = await uploadToCloudinary(file);
+        console.log("Sau khi upload lên Cloudinary:", uploadResult);
+
+        console.log("Trước khi insert vào MongoDB");
+
         try {
-          const uploadResult = await uploadToCloudinary(file);
-  
-          const newMessage = new messageModel({
-            chatId: chatId.toString(),
-            senderId: senderId.toString(),
-            file: {
-              filename: uploadResult.original_filename || 'file',
-              url: uploadResult.secure_url,
-              mimetype: uploadResult.resource_type 
-                ? `${uploadResult.resource_type}/${uploadResult.format || 'unknown'}` 
-                : 'unknown/unknown'
-            },
-            groupId: groupId ? groupId.toString() : null,
-            timestamp: new Date()
-          });
-  
-          // Use transaction for more reliable save
-          const session = await mongoose.startSession();
-          session.startTransaction();
-  
-          try {
-            const savedMessage = await newMessage.save({ session });
-            await session.commitTransaction();
-            session.endSession();
-  
-            // Emit file to appropriate recipients
-            if (groupId) {
-              io.to(`group_${groupId}`).emit("newFile", {
-                senderId: socket.userId,
-                file: savedMessage.file,
-                groupId: groupId,
-                timestamp: savedMessage.timestamp,
-                _id: savedMessage._id
-              });
-            } else if (recipientId) {
-              const recipientSocket = onlineUsers.find(user => user.userId === recipientId);
-              if (recipientSocket) {
-                io.to(recipientSocket.socketId).emit("newFile", {
-                  senderId: socket.userId,
-                  file: savedMessage.file,
-                  timestamp: savedMessage.timestamp,
-                  _id: savedMessage._id
-                });
-              }
-            }
-  
-            callback({ 
-              status: "sent", 
-              timestamp: new Date(),
-              messageId: savedMessage._id 
+            const newMessage = new messageModel({
+                chatId: chatId.toString(),
+                senderId: senderId.toString(),
+                file: {
+                    filename: uploadResult.original_filename,
+                    url: uploadResult.secure_url,
+                    mimetype: `${uploadResult.resource_type}/${path.extname(uploadResult.original_filename).substring(1)}`
+                },
+                groupId: groupId ? groupId.toString() : null,
+                timestamp: new Date()
             });
-  
-            return; // Success, exit the retry loop
-          } catch (saveError) {
-            await session.abortTransaction();
-            session.endSession();
-            throw saveError;
-          }
+
+            console.log("newMessage trước khi save:", newMessage);
+
+            const savedMessage = await newMessage.save();
+            console.log("Kết quả insert:", savedMessage);
+
+            const insertedId = savedMessage._id;
+            if (groupId) {
+                io.to(`group_${groupId}`).emit("newFile", {
+                    senderId: socket.userId,
+                    file: savedMessage.file,
+                    groupId: groupId,
+                    timestamp: savedMessage.timestamp,
+                    _id: insertedId
+                });
+            } else if (recipientId) {
+                io.to(recipientId).emit("newFile", {
+                    senderId: socket.userId,
+                    file: savedMessage.file,
+                    timestamp: savedMessage.timestamp,
+                    _id: insertedId
+                });
+            }
+
         } catch (error) {
-          retries++;
-          console.error(`File upload attempt ${retries} failed:`, error);
-          
-          if (retries >= maxRetries) {
-            throw error; // Throw after max retries
-          }
-  
-          // Optional: Add a small delay between retries
-          await new Promise(resolve => setTimeout(resolve, 1000 * retries));
+            console.error('Lỗi khi lưu tin nhắn:', error);
+            callback({ status: "error", error: error.message });
+            return;
         }
-      }
+
+        callback({ status: "sent", timestamp: new Date() });
+
     } catch (error) {
-      console.error('File sending error:', error);
-      callback({
-        status: "error",
-        error: error.toString(),
-        timestamp: new Date()
-      });
+        console.error('Lỗi khi gửi file:', error);
+
+        callback({
+            error: error.toString(),
+            timestamp: new Date()
+        });
     }
-  });
+});
   socket.on("disconnect", () => {
     console.log(`Người dùng ngắt kết nối: ${socket.id}`);
 
