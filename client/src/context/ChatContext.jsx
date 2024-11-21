@@ -47,7 +47,6 @@ export const ChatContextProvider = ({ children, user }) => {
 
     useEffect(() => {
         if (socket === null) return;
-
         const handleNotification = (res) => {
             console.log('Received notification:', res);
             const isGroupMessage = Boolean(res.groupId);
@@ -67,6 +66,7 @@ export const ChatContextProvider = ({ children, user }) => {
                 }
             });
         };
+
         socket.on('getNotification', handleNotification);
 
         return () => {
@@ -84,14 +84,26 @@ export const ChatContextProvider = ({ children, user }) => {
         }
         if (socket === null) return;
 
-        const handleNewMessage = (res) => {
+        const handleNewMessage = () => {
             if (currentChat?._id !== res.chatId) return;
-            setMessages((prev) => Array.isArray(prev) ? [...prev, res] : [res]);
+            setMessages((prev) => {
+                // Kiểm tra tin nhắn trùng lặp
+                if (prev.some(msg => msg._id === res._id)) {
+                    return prev;
+                }
+                return [...prev, res];
+            });
         };
 
         const handleNewGroupMessage = (res) => {
             if (currentChat?._id !== res.groupId) return;
-            setMessages((prev) => Array.isArray(prev) ? [...prev, res] : [res]);
+            setMessages((prev) => {
+                // Kiểm tra tin nhắn trùng lặp  
+                if (prev.some(msg => msg._id === res._id)) {
+                    return prev;
+                }
+                return [...prev, res];
+            });
         };
 
         const handleNotification = (res) => {
@@ -111,10 +123,12 @@ export const ChatContextProvider = ({ children, user }) => {
         socket.on("getGroupMessage", handleNewGroupMessage);
         socket.on("getNotification", handleNotification);
 
+
         return () => {
             socket.off("getMessage", handleNewMessage);
             socket.off("getGroupMessage", handleNewGroupMessage);
             socket.off("getNotification", handleNotification);
+
         };
     }, [socket, currentChat]);
 
