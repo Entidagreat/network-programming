@@ -8,7 +8,7 @@ import { useFetchRecipientUser } from "../../hooks/useFetchRecipient";  
 import moment from "moment";
 import 'moment/locale/vi';
 import InputEmoji from "react-input-emoji";
-import { translateToEnglish, translateToVietnamese } from "../../utils/translate";
+import { translateToEnglish, translateToVietnamese, translateToChinese, translateToKorean, translateToRussian } from "../../utils/translate";
 import he from "he";
 import { useLanguage } from "../../context/LanguageContext";
 import { translations } from "../../utils/translations";
@@ -154,8 +154,13 @@ const ChatBox = () => {
         translatedText = await translateToEnglish(message.text);
       } else if (language === 'vn') {
         translatedText = await translateToVietnamese(message.text);
+      } else if (language === 'ko') {
+        translatedText = await translateToKorean(message.text);
+      } else if (language === 'zh') {
+        translatedText = await translateToChinese(message.text);
+      } else if (language === 'ru') {
+        translatedText = await translateToRussian(message.text);
       }
-
       const decodedText = he.decode(translatedText);
       setTranslatedMessages(prev => ({ ...prev, [message._id]: decodedText }));
     } catch (error) {

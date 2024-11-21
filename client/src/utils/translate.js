@@ -2,6 +2,17 @@ import axios from 'axios';
 
 const API_KEY = ''; // Replace with your actual API key
 
+export const translateToKorean = async (text) => {
+    return await translateText(text, 'ko');
+};
+
+export const translateToRussian = async (text) => {
+    return await translateText(text, 'ru');
+};
+export const translateToChinese = async (text) => {
+    return await translateText(text, 'zh');
+};
+
 export const translateToEnglish = async (text) => {
     return await translateText(text, 'en');
 };

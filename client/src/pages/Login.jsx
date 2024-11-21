@@ -4,7 +4,7 @@ import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { LanguageContext } from '../context/LanguageContext';
 import { translations } from '../utils/translations';
-import loginbg1 from '../assets/loginbg1.jpg';
+import logotabgz from '../assets/loginbgz.jpg';
 import { useEffect } from 'react';
 
 
@@ -83,8 +83,11 @@ const Login = () => {
                                 onChange={(e) => setLanguage(e.target.value)}
                                 className="mb-3"
                             >
-                                <option value="en">English</option>
                                 <option value="vn">Tiếng Việt</option>
+                                <option value="en">English</option>
+                                <option value="zh">Chinese </option>
+                                <option value="ko">Korean</option>
+                                <option value="ru">Russian</option>
                             </Form.Select>
 
                             <Button 
@@ -105,7 +108,7 @@ const Login = () => {
                 </Row>
             </div>
             <div className="column column--bg">
-                <img className="bg-img" src={loginbg1} />
+                <img className="bg-img" src={logotabgz} />
             </div>
         </Form>
     );
