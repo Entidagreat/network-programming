@@ -161,9 +161,9 @@ const NavBar = () => {
                 <Link to="/login" className="link-light text-decoration-none">
                   {t.Navbar.login}
                 </Link>
-                <Link to="/register" className="link-light text-decoration-none">
+                {/* <Link to="/register" className="link-light text-decoration-none">
                   {t.Navbar.register}
-                </Link>
+                </Link> */}
               </>
             )}
           </Stack>
