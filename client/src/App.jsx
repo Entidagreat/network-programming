@@ -15,14 +15,20 @@ function App() {
   const { user } = useContext(AuthContext);
   return (
     <ThemeProvider>
-
     <LanguageProvider>
     <ChatContextProvider user={user}>
       <NavBar />
       <Container>
         <Routes>
           <Route path="/" element={user ? <Chat /> : <Login />} />
-          <Route path="/Register" element={user ? <Chat /> : <Register />} />
+                                      {/* Only allow access to Register if user is admin */}
+                            <Route path="/Register" element={
+                                user?.email === 'admin@gmail.com' ? (
+                                    <Register />
+                                ) : (
+                                    <Navigate to="/" />
+                                )
+                            } />
           <Route path="/Login" element={user ? <Chat /> : <Login />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

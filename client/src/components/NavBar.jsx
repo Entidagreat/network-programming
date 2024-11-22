@@ -12,6 +12,7 @@ import axios from "axios";
 import { baseUrl } from "../utils/services";
 import avartar from "../assets/avartar.svg"; // Import ảnh mặc định
 
+
 const NavBar = () => {
     const { user, logoutUser, setUser } = useContext(AuthContext);
     const { language } = useLanguage();
@@ -85,24 +86,35 @@ const updatedUserResponse = await axios.get(`${baseUrl}/users/find/${user._id}`)
                 )}
                 <Nav className="d-flex align-items-center">
                     <Stack direction="horizontal" gap={3}>
-                        {user && (
-                            <>
-                                <Notification />
-                                <Link onClick={() => logoutUser()} to="/login" className="link-light text-decoration-none">
-                                    {t.Navbar.logout}
-                                </Link>
-                            </>
-                        )}
-                        {!user && (
-                            <>
-                                <Link to="/login" className="link-light text-decoration-none">
-                                    {t.Navbar.login}
-                                </Link>
-                                <Link to="/Register" className="link-light text-decoration-none">
-                                    {t.Navbar.register}
-                                </Link>
-                            </>
-                        )}
+                    {user ? (
+        <>
+            <Notification />
+            <Link 
+                onClick={() => logoutUser()} 
+                to="/login" 
+                className="link-light text-decoration-none"
+            >
+                {t.Navbar.logout}
+            </Link>
+            {/* Only show Register link if user is admin */}
+            {user.email === 'admin@gmail.com' && (
+                <Link 
+                    to="/Register" 
+                    className="link-light text-decoration-none"
+                >
+                    {t.Navbar.register}
+                </Link>
+            )}
+        </>
+    ) : (
+        // Only show login link when not logged in
+        <Link 
+            to="/login" 
+            className="link-light text-decoration-none"
+        >
+            {t.Navbar.login}
+        </Link>
+    )}
                         <Form.Check
                             type="switch"
                             id="theme-switch"

@@ -20,19 +20,6 @@ const Login = () => {
     const { language, setLanguage } = useContext(LanguageContext);
     const t = translations[language]; // Get translations for current language
 
-    // useEffect(() => {
-    //     const theme = document.documentElement.getAttribute('data-theme');
-    //     if (theme === 'dark') {
-    //         document.body.classList.add('blurred');
-    //     } else {
-    //         document.body.classList.add('blurred');
-    //     }
-    
-    //     return () => {
-    //         document.body.classList.remove('blurred');
-    //         document.body.classList.remove('blurred');
-    //     };
-    // }, []);
     useEffect(() => {
         const theme = document.documentElement.getAttribute('data-theme');
         if (theme === 'dark') {
