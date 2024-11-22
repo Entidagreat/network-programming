@@ -64,20 +64,20 @@ const NavBar = () => {
     }
 
     try {
-      const response = await axios.put(
-        `${baseUrl}/users/change-password`,
-        {
-          userId: user._id,
-          oldPassword,
-          newPassword,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+        const response = await axios.put(
+            `${baseUrl}/users/change-password`,
+            {
+              userId: user._id,
+              oldPassword,
+              newPassword,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${user.token}`,
+                'Content-Type': 'application/json',
+              },
+            }
+          );
 
       if (response.status === 200) {
         setChangePasswordSuccess('Password changed successfully!');
@@ -101,17 +101,17 @@ const NavBar = () => {
         </h2>
         {user && (
           <>
-            <span style={{ display: 'flex', alignItems: 'center' }}>
+            <span>
               {t.Navbar.loginname},
-              
-              <Dropdown align="end" style={{ margin: '0 10px' }}>
+              <span style={{ marginLeft: '5px' }}>{user?.name}</span>
+              <Dropdown align="end">
                 <Dropdown.Toggle variant="none" id="dropdown-avatar">
                   <img
                     src={user?.avatar || avartar}
                     alt="Avatar"
                     width="30"
                     height="30"
-                    style={{ borderRadius: '50%', cursor: 'pointer' }}
+                    style={{ borderRadius: '50%', cursor: 'pointer', marginLeft: '3px', marginBottom: '3px' }}
                     onError={(e) => { e.target.onerror = null; e.target.src = avartar }}
                   />
                 </Dropdown.Toggle>
@@ -125,8 +125,6 @@ const NavBar = () => {
                   </Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown>
-
-              <span>{user?.name}</span>
             </span>
             <input
               type="file"
