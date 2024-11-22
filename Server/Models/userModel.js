@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema({
     password: { type: String, required: true, minlength: 3, maxlength: 1024 },
     role: {
         type: String,
-        enum: ['user', 'high user', 'moderator'],
+        enum: ['user', 'high user', 'moderator','admin'],
         default: 'user'
     },
     friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],

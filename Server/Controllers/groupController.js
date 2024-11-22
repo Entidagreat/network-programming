@@ -99,28 +99,33 @@ const getGroupMessages = async (req, res) => {
 
 // groupController.js
 const getUserGroups = async (req, res) => {
-  const { userId } = req.params;
-
-  try {
-    // Tìm người dùng theo userId
-    const user = await User.findById(userId);
-    if (!user) {
-      console.log('User not found');
-      return res.status(404).json({ message: 'User not found' });
+    const { userId } = req.params;
+  
+    try {
+      // Tìm người dùng theo userId
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+  
+      let groups;
+  
+      if (user.role === 'admin') {
+        // Nếu là admin, lấy tất cả các nhóm
+        groups = await Group.find()
+          .populate('members.user', 'name email'); 
+      } else {
+        // Nếu không phải admin, chỉ lấy các nhóm mà người dùng tham gia
+        groups = await Group.find({ _id: { $in: user.group } })
+          .populate('members.user', 'name email'); 
+      }
+  
+      res.status(200).json(groups);
+    } catch (error) {
+      console.error('Error fetching user groups:', error);
+      res.status(500).json({ message: 'Internal server error' });
     }
-
-    console.log('User found:', user);
-
-    // Tìm tất cả các nhóm mà người dùng tham gia
-    const groups = await Group.find({ _id: { $in: user.group } })
-      .populate('members.user', 'name email'); // Populate thông tin người dùng trong thành viên
-
-    res.status(200).json(groups);
-  } catch (error) {
-    console.error('Error fetching user groups:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-};
+  };
 
 const addUserToGroup = async (req, res) => {
     const { groupId, userId } = req.body;
