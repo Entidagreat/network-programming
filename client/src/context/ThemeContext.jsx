@@ -1,18 +1,25 @@
-import { createContext, useState, useContext } from 'react';
+import { createContext, useState, useContext, useEffect } from 'react';
 
 const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  // Initialize state from localStorage or default to false
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem('theme');
+    return savedTheme === 'dark';
+  });
+
+  // Sync theme with localStorage and HTML attribute on mount and changes
+  useEffect(() => {
+    const theme = isDarkMode ? 'dark' : 'light';
+    localStorage.setItem('theme', theme);
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [isDarkMode]);
 
   const toggleTheme = () => {
     setIsDarkMode(prev => !prev);
-    const theme = document.documentElement.getAttribute('data-theme');
-    document.documentElement.setAttribute(
-      'data-theme',
-      theme === 'dark' ? 'light' : 'dark'
-    );
   };
+
   return (
     <ThemeContext.Provider value={{ isDarkMode, toggleTheme }}>
       {children}

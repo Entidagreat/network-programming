@@ -102,9 +102,8 @@ const NavBar = () => {
         {user && (
           <>
             <span>
-              {t.Navbar.loginname},
-              <span style={{ marginLeft: '5px' }}>{user?.name}</span>
               <Dropdown align="end">
+                {t.Navbar.loginname},
                 <Dropdown.Toggle variant="none" id="dropdown-avatar">
                   <img
                     src={user?.avatar || avartar}
@@ -113,15 +112,17 @@ const NavBar = () => {
                     height="30"
                     style={{ borderRadius: '50%', cursor: 'pointer', marginLeft: '3px', marginBottom: '3px' }}
                     onError={(e) => { e.target.onerror = null; e.target.src = avartar }}
+                    
                   />
                 </Dropdown.Toggle>
+              <span style={{ marginLeft: '5px' }}>{user?.name}</span>
 
                 <Dropdown.Menu>
                   <Dropdown.Item onClick={() => avatarInputRef.current.click()}>
-                    Thay đổi avatar
+                    {t.login.changeavt}
                   </Dropdown.Item>
                   <Dropdown.Item onClick={handleShowChangePasswordModal}>
-                    Đổi mật khẩu
+                    {t.login.changepass}
                   </Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown>
@@ -152,7 +153,7 @@ const NavBar = () => {
                     to="/Register"
                     className="link-light text-decoration-none"
                   >
-                    Register
+                    {t.Navbar.register}
                   </Link>
                 )}
               </>
@@ -161,11 +162,19 @@ const NavBar = () => {
                 <Link to="/login" className="link-light text-decoration-none">
                   {t.Navbar.login}
                 </Link>
+                
                 {/* <Link to="/register" className="link-light text-decoration-none">
                   {t.Navbar.register}
                 </Link> */}
               </>
             )}
+                                    <Form.Check
+                            type="switch"
+                            id="theme-switch"
+                            checked={isDarkMode}
+                            onChange={toggleTheme}
+                            label={<span style={{ color: 'white' }}>{isDarkMode ? '🌙' : '☀️'}</span>}
+                        />
           </Stack>
         </Nav>
       </Container>
@@ -173,19 +182,20 @@ const NavBar = () => {
       {/* Change Password Modal */}
       <Modal show={showChangePasswordModal} onHide={handleCloseChangePasswordModal}>
         <Modal.Header closeButton>
-          <Modal.Title>Đổi Mật Khẩu</Modal.Title>
+          <Modal.Title >Đổi Mật Khẩu</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body style={{ marginTop: '20px' }}>
           {changePasswordError && <Alert variant="danger">{changePasswordError}</Alert>}
           {changePasswordSuccess && <Alert variant="success">{changePasswordSuccess}</Alert>}
-          <Form onSubmit={handleChangePassword}>
+          <Form onSubmit={handleChangePassword} style={{}}>
             <Form.Group controlId="oldPassword">
-              <Form.Label>Mật khẩu cũ</Form.Label>
+              <Form.Label style={{}}>Mật khẩu cũ</Form.Label>
               <Form.Control
                 type="password"
-                placeholder="Nhập mật khẩu cũ"
+                placeholder="{t.login.oldpassword}"
                 value={oldPassword}
                 onChange={(e) => setOldPassword(e.target.value)}
+                style={{marginBottom:"10px"}}
               />
             </Form.Group>
 
@@ -193,9 +203,10 @@ const NavBar = () => {
               <Form.Label>Mật khẩu mới</Form.Label>
               <Form.Control
                 type="password"
-                placeholder="Nhập mật khẩu mới"
+                placeholder="{t.login.newpassword}"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
+                style={{marginBottom:"10px"}}
               />
             </Form.Group>
 
@@ -203,14 +214,15 @@ const NavBar = () => {
               <Form.Label>Xác nhận mật khẩu mới</Form.Label>
               <Form.Control
                 type="password"
-                placeholder="Xác nhận mật khẩu mới"
+                placeholder="{t.login.confirmpassword}"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                style={{marginBottom:"40px"}}
               />
             </Form.Group>
 
             <Button variant="primary" type="submit">
-              Đổi mật khẩu
+              {t.login.changepass}
             </Button>
           </Form>
         </Modal.Body>

@@ -90,8 +90,8 @@ const Notification = () => {
                                     setIsOpen(false);
                                 }}
                             >
-                                <span>{n.type === 'group' ? `${n.senderName} sent a message in group ${n.groupName}` : ''}</span>
-                                <span>{n.type !== 'group' ? `${n.senderName} sent you a new message` : ''}</span>
+                                <span>{n.type === 'group' ? `${n.senderName} ${t.Notification.group} ${n.groupName}` : ''}</span>
+                                <span>{n.type !== 'group' ? `${n.senderName} ${t.Notification.user}` : ''}</span>
                                 <span className="notification-time">
                                     {moment(n.date).calendar()}
                                 </span>

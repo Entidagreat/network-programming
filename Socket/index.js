@@ -40,12 +40,30 @@ const userGroups = new Map();
 // Upload file to Cloudinary
 const uploadToCloudinary = (file) => {
   return new Promise((resolve, reject) => {
-    const originalFilename = file.originalname;
+    if (!file) {
+      reject(new Error('File is undefined'));
+      return;
+    }
+
+    const originalFilename = file.originalname || file.filename || 'default_filename.txt';
+
+    // Determine resource type based on mimetype or extension
+    let resourceType = 'auto';
+    if (file.mimetype && file.mimetype.startsWith('image/')) {
+      resourceType = 'image';
+    } else if (file.mimetype && file.mimetype.startsWith('video/')) {
+      resourceType = 'video';
+    } else {
+      const ext = path.extname(originalFilename).toLowerCase();
+      if (['.zip', '.rar', '.txt'].includes(ext)) {
+        resourceType = 'raw';
+      }
+    }
 
     const stream = cloudinary.uploader.upload_stream(
       {
         folder: 'chat_files',
-        resource_type: 'auto',
+        resource_type: resourceType,
         public_id: originalFilename,
         overwrite: true,
         use_filename: false,
@@ -61,7 +79,7 @@ const uploadToCloudinary = (file) => {
         }
       }
     );
-    const buffer = Buffer.from(file);
+    const buffer = Buffer.from(file.buffer);
     stream.end(buffer);
   });
 };
@@ -232,6 +250,7 @@ io.on("connection", (socket) => {
 
         const { recipientId, groupId, chatId, file } = data;
 
+        // Validate required fields
         if (!chatId) throw new Error('Missing chatId');
         if (!socket.userId) throw new Error('Missing socket.userId');
 
@@ -240,56 +259,51 @@ io.on("connection", (socket) => {
         if (!senderId) throw new Error('Missing senderId');
         if (!file) throw new Error('Missing file');
 
+        // Perform file upload to Cloudinary
         console.log("Trước khi upload lên Cloudinary");
         const uploadResult = await uploadToCloudinary(file);
         console.log("Sau khi upload lên Cloudinary:", uploadResult);
 
+        // Kiểm tra nếu uploadResult có đầy đủ thông tin cần thiết
+        if (!uploadResult || !uploadResult.original_filename || !uploadResult.secure_url) {
+            throw new Error('Upload file failed: missing data from Cloudinary');
+        }
+
         console.log("Trước khi insert vào MongoDB");
 
-        try {
-            const newMessage = new messageModel({
-                chatId: chatId.toString(),
-                senderId: senderId.toString(),
-                file: {
-                    filename: uploadResult.original_filename,
-                    url: uploadResult.secure_url,
-                    mimetype: `${uploadResult.resource_type}/${path.extname(uploadResult.original_filename).substring(1)}`
-                },
-                groupId: groupId ? groupId.toString() : null,
-                timestamp: new Date()
-            });
+        // Thực hiện insert trực tiếp vào MongoDB bằng phương thức insertOne
+        const newMessage = {
+            chatId: chatId.toString(),
+            senderId: senderId.toString(),
+            file: {
+                filename: uploadResult.original_filename,
+                url: uploadResult.secure_url,
+                mimetype: `${uploadResult.resource_type}/${path.extname(uploadResult.original_filename).substring(1)}`
+            },
+            groupId: groupId ? groupId.toString() : null,
+            timestamp: new Date()
+        };
 
-            console.log("newMessage trước khi save:", newMessage);
+        // Sử dụng MongoDB's insertOne()
+        const result = await mongoose.connection.collection('messages').insertOne(newMessage);
 
-            const savedMessage = await newMessage.save();
-            console.log("Kết quả insert:", savedMessage);
+        console.log("Kết quả insert:", result);
 
-            const insertedId = savedMessage._id;
-            if (groupId) {
-                io.to(`group_${groupId}`).emit("newFile", {
-                    senderId: socket.userId,
-                    file: savedMessage.file,
-                    groupId: groupId,
-                    timestamp: savedMessage.timestamp,
-                    _id: insertedId
-                });
-            } else if (recipientId) {
-                io.to(recipientId).emit("newFile", {
-                    senderId: socket.userId,
-                    file: savedMessage.file,
-                    timestamp: savedMessage.timestamp,
-                    _id: insertedId
-                });
-            }
+        const insertedId = result.insertedId;
+        const messageData = {
+            senderId: socket.userId,
+            file: newMessage.file,
+            timestamp: newMessage.timestamp,
+            _id: insertedId
+        };
 
-        } catch (error) {
-            console.error('Lỗi khi lưu tin nhắn:', error);
-            callback({ status: "error", error: error.message });
-            return;
+        if (groupId) {
+            io.to(`group_${groupId}`).emit("newFile", messageData);
+        } else if (recipientId) {
+            io.to(recipientId).emit("newFile", messageData);
         }
 
         callback({ status: "sent", timestamp: new Date() });
-
     } catch (error) {
         console.error('Lỗi khi gửi file:', error);
 
@@ -299,6 +313,9 @@ io.on("connection", (socket) => {
         });
     }
 });
+
+
+
   socket.on("disconnect", () => {
     console.log(`Người dùng ngắt kết nối: ${socket.id}`);
 
