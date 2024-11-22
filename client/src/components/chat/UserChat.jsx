@@ -42,6 +42,7 @@ const UserChat = ({ chat, user }) => {
             direction="horizontal"
             gap={3}
             className="user-card align-items-center p-2 justify-context-between"
+            style={{ minWidth: "250px" }}
             role="button"
             onClick={() => {
                 if (thisUserNotifications?.length !== 0) {
@@ -50,28 +51,58 @@ const UserChat = ({ chat, user }) => {
             }}
         >
             
-           <div className="d-flex">
-           <div className="me-2">
+           <div className="d-flex position-relative">
+           <div className="me-2 ">
            <img 
-  src={recipientUser?.avatar || avartar} 
-  height="35px"
-  width="35px"
-  style={{ borderRadius: "50%" }}
-  alt={recipientUser?.name || "Người dùng"} 
-  onError={(e) => { e.target.onerror = null; e.target.src = avartar }} 
-/>
+                src={recipientUser?.avatar || avartar} 
+                height="35px"
+                width="35px"
+                style={{ borderRadius: "50%" }}
+                alt={recipientUser?.name || "Người dùng"} 
+                onError={(e) => { e.target.onerror = null; e.target.src = avartar }} 
+                />
+                <span 
+                className={isOnline ? "user-online" : ""} 
+                style={{
+                    position: "absolute",
+                    bottom: "0",
+                    right: "0",
+                    width: "11px",
+                    height: "11px",
+                    borderRadius: "50%",
+                    backgroundColor: isOnline ? "#44b700" : "#ccc",
+                    border: "1.5px solid white",
+                    marginRight: "215px",
+                    // marginRight: "175px",
+
+                }}
+                    ></span>
                 </div>
-                <div className="text-content">
-                    <div className="name">{recipientUser?.name}</div>
-                    <div className="text">
+                <div className="text-content" style={{ maxHeight: "33px",marginBottom:"5px" }}>
+                    <div className="name" style={{ maxWidth:"450px"}}>{recipientUser?.name}</div>
+                    <div className="text" style={{}}>
                         {latestMessage?.text && (
                             <span>{truncateText(latestMessage?.text)}</span>
                         )}
                     </div>
                 </div>
             </div>
-            <div className="d-flex flex-colum align-items-end">
-                <div className="date">{moment(latestMessage?.createdAt).calendar()}</div>
+            <div className="d-flex flex-colum align-items-end" style={{}}>
+            <div className="date" style={{}}>
+                    {moment(latestMessage?.createdAt).calendar(null, {
+                        sameDay: 'HH:mm',
+                        lastDay: `[${t.datetime.yesterday}]`,
+                        lastWeek: '[Last] dddd',
+                        sameElse: function(now) {
+                        const days = moment(now).diff(moment(latestMessage?.createdAt), 'days');
+                        // if (days <= 7) return '[' + days + ' days ago]';
+                        // if (days <= 30) return '[1 month ago]';
+                        if (days < 7) return `[${days} ${t.datetime.day}]`;
+                        if (days <= 30) return `[${t.datetime.month}]`;
+                        return 'YYYY-MM-DD';
+                        }
+                    })}
+                    </div>
                 <div
                     className={
                         thisUserNotifications?.length > 0 ? "this-user-notifications" : ""
@@ -81,7 +112,7 @@ const UserChat = ({ chat, user }) => {
                         ? thisUserNotifications?.length
                         : ""}
                 </div>
-                <span className={isOnline ? "user-online" : ""}></span>
+                {/* <span className={isOnline ? "user-online" : ""}></span> */}
             </div>
         </Stack>
     );

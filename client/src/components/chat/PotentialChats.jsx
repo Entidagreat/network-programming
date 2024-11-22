@@ -173,6 +173,7 @@ const PotentialChats = ({ setRefresh }) => {
               <span>{truncateText(latestMessage?.text)}</span>
             )}
           </div>
+          
     </div>
 </div>
           {onlineUsers?.some((user) => group.members.some(m => m.user._id === user.userId)) && (

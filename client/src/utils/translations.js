@@ -1,3 +1,4 @@
+import { Last } from "react-bootstrap/esm/PageItem";
 
 export const translations = {
     en: {
@@ -30,6 +31,14 @@ export const translations = {
         searchPlaceholder: "Search conversation",
         loading: "Loading chats...",
         noConversation: "No conversation selected yet..."
+      },
+      datetime: {
+        yesterday: "yesterday",
+        today: "today",
+        last: "last",
+        dayago: "day ago",
+        weekago: "week ago",
+        monthago: "month ago",
       }
     },
     vn: {
@@ -60,7 +69,14 @@ export const translations = {
         searchPlaceholder: "Tìm kiếm cuộc trò chuyện",
         loading: "Đang tải...",
         noConversation: "Vui lòng chọn cuộc trò chuyện..."
+      },
+      datetime: {
+        yesterday: "hôm qua",
+        today: "hôm nay",
+        last: "trước",
+        dayago: "ngày trước",
+        weekago: "tuần trước",
+        monthago: "tháng trước",
       }
-      // Add more translations
     }
   };

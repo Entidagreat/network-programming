@@ -330,7 +330,7 @@ const ChatBox = () => {
 
       <Stack direction="horizontal" gap={3} className="chat-input flex-grow-0">
       <div style={{
-    width: "100%", // chiều rộng tối đa
+    width: "700px", // chiều rộng tối đa
     maxWidth: "750px", // chiều rộng tối đa (có thể điều chỉnh)
     overflowWrap: 'break-word',
     whiteSpace: 'pre-wrap'
@@ -342,15 +342,18 @@ const ChatBox = () => {
           borderColor="rgba(72,112,223,0.2)"
           onKeyDown={handleKeyDown}
           cleanOnEnter
-          placeholder="Type a message"
-          maxLength={1000}
+          placeholder="Aa"
+          maxLength={3000}
           // Add these props for text wrapping
           height="auto"
-          maxHeight={100} // Maximum height before scrolling
+          maxHeight={50} // Maximum height before scrolling
+          maxWidth={100} // Minimum height
           style={{
             overflow: 'auto',
             wordWrap: 'break-word',
-            whiteSpace: 'pre-wrap'
+            whiteSpace: 'pre-wrap',
+            maxHeight: "100px",
+            maxWidth:"100%",
           }}
         />
           </div>
@@ -365,7 +368,8 @@ const ChatBox = () => {
                 className="send-file"
                 onClick={handleIconClick} // Trigger file input
                 style={{
-                    color: '#37342d',
+                    color: '#8d8c8a',
+                    borderColor:"rgba(72,112,223,0.2)",
                     backgroundColor: 'transparent',
                     border: 'none',
                     outline: 'none',

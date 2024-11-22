@@ -28,11 +28,6 @@ body.blurred-light::before {
 .single-user {
   background: #e4c59e;
   color:#e4c59e;
-  /* cursor: pointer;
-  padding: 5px 7px;
-  border-radius: 10px;
-  margin-right: 0.5rem;
-  position: relative; */
 }
 
 /* User Card(list) */
@@ -44,31 +39,21 @@ body.blurred-light::before {
 }
 
 .user-card .text-content {
-  width: 170px;
+  width: 210px;
+  margin-bottom: 2px;
 }
 
 .user-card .name {
-  font-weight: 700;
+  font-weight: 650;
 }
 
 .user-card .text,
 .user-card .date {
-  font-size: 15px;
+  font-size: 14px;
   color: black;
   border: black;
 }
 
-.user-online {
-  display: inline-block;
-  height: 12px;
-  width: 12px;
-  border-radius: 50%;
-  background: #859f3d;
-  position: absolute;
-  top: -3px;
-  right: -3px;
-  z-index: 2;
-}
 
 /* Chat Box */
 .chat-box {
@@ -130,17 +115,7 @@ body.blurred-light::before {
   text-align: justify;
 }
 
-/* .message-footer {
-  font-size: 12px;
-  align-self: flex-end;
-  font-weight: 400;
-  position: absolute;
-  right: 0; 
-  bottom: -10px; 
-  text-align: right; 
-  min-width: 150px;
-  color: #33342d;
-} */
+
 .message-footer {
   font-size: 12px;
   align-self: flex-end;
@@ -156,6 +131,7 @@ body.blurred-light::before {
   width: 100%;
   background: #fdead8;
   padding: 1rem;
+  max-width: 100%;
 }
 .send-btn {
   border: none;
@@ -245,7 +221,7 @@ body.blurred-light::before {
   right: -15px;
 }
 
-/* .this-user-notifications {
+.this-user-notifications {
   display: flex;
   background: #00bd9b;
   height: 20px;
@@ -255,7 +231,8 @@ body.blurred-light::before {
   border-radius: 50%;
   align-items: center;
   justify-content: center;
-} */
+  margin-left: 40px;
+}
 
 /* new */
 .translate-btn {
@@ -293,7 +270,7 @@ body.blurred-light::before {
   background: #f1f1f1;
 } */
 /* .user-card align-items-center p-2 justify-context-between{
-  height: calc(100vh - 10rem); 
+  height: calc(200vh - 10rem); 
   overflow-y: auto;
   background-color: #00bd9b;
 } */
@@ -384,6 +361,7 @@ button.login-submit{
 }
 .sender-name{
   position: absolute;
+  font-weight: bold;
   top: -28px;
   color: black;
   min-width: 150px;

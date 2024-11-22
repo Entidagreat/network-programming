@@ -131,18 +131,7 @@
     right: -15px;
   }
 
-  [data-theme='dark'] .user-online {
-    display: inline-block;
-    height: 12px;
-    width: 12px;
-    border-radius: 50%;
-    background: #22DD22;
-    position: absolute;
-    top: -3px;
-    right: -3px;
-    z-index: 2;
-  }
-  
+
   [data-theme='dark'] .login{
     display:flex;
     margin:auto;
@@ -222,4 +211,14 @@ body {
   background-color: #000000;
   transition: background-color 0.3s ease;
 }
-  
+
+[data-theme='dark'] .sender-name{
+  position: absolute;
+  font-weight: bold;
+  top: -28px;
+  color: white;
+  min-width: 150px;
+  max-width: 150px;
+  font-size: 12px;
+  left:-10px;
+}
