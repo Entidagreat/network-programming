@@ -64,20 +64,20 @@ const NavBar = () => {
     }
 
     try {
-        const response = await axios.put(
-            `${baseUrl}/users/change-password`,
-            {
-              userId: user._id,
-              oldPassword,
-              newPassword,
-            },
-            {
-              headers: {
-                Authorization: `Bearer ${user.token}`,
-                'Content-Type': 'application/json',
-              },
-            }
-          );
+      const response = await axios.put(
+        `${baseUrl}/users/change-password`,
+        {
+          userId: user._id,
+          oldPassword,
+          newPassword,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
       if (response.status === 200) {
         setChangePasswordSuccess('Password changed successfully!');
@@ -112,10 +112,10 @@ const NavBar = () => {
                     height="30"
                     style={{ borderRadius: '50%', cursor: 'pointer', marginLeft: '3px', marginBottom: '3px' }}
                     onError={(e) => { e.target.onerror = null; e.target.src = avartar }}
-                    
+
                   />
                 </Dropdown.Toggle>
-              <span style={{ marginLeft: '5px' }}>{user?.name}</span>
+                <span style={{ marginLeft: '5px' }}>{user?.name}</span>
 
                 <Dropdown.Menu>
                   <Dropdown.Item onClick={() => avatarInputRef.current.click()}>
@@ -162,19 +162,19 @@ const NavBar = () => {
                 <Link to="/login" className="link-light text-decoration-none">
                   {t.Navbar.login}
                 </Link>
-                
+
                 {/* <Link to="/register" className="link-light text-decoration-none">
                   {t.Navbar.register}
                 </Link> */}
               </>
             )}
-                                    <Form.Check
-                            type="switch"
-                            id="theme-switch"
-                            checked={isDarkMode}
-                            onChange={toggleTheme}
-                            label={<span style={{ color: 'white' }}>{isDarkMode ? '🌙' : '☀️'}</span>}
-                        />
+            <Form.Check
+              type="switch"
+              id="theme-switch"
+              checked={isDarkMode}
+              onChange={toggleTheme}
+              label={<span style={{ color: 'white' }}>{isDarkMode ? '🌙' : '☀️'}</span>}
+            />
           </Stack>
         </Nav>
       </Container>
@@ -192,10 +192,10 @@ const NavBar = () => {
               <Form.Label style={{}}>Mật khẩu cũ</Form.Label>
               <Form.Control
                 type="password"
-                placeholder="{t.login.oldpassword}"
+                placeholder={t.login.oldpassword}
                 value={oldPassword}
                 onChange={(e) => setOldPassword(e.target.value)}
-                style={{marginBottom:"10px"}}
+                style={{ marginBottom: "10px" }}
               />
             </Form.Group>
 
@@ -203,10 +203,10 @@ const NavBar = () => {
               <Form.Label>Mật khẩu mới</Form.Label>
               <Form.Control
                 type="password"
-                placeholder="{t.login.newpassword}"
+                placeholder={t.login.newpassword}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                style={{marginBottom:"10px"}}
+                style={{ marginBottom: "10px" }}
               />
             </Form.Group>
 
@@ -214,10 +214,10 @@ const NavBar = () => {
               <Form.Label>Xác nhận mật khẩu mới</Form.Label>
               <Form.Control
                 type="password"
-                placeholder="{t.login.confirmpassword}"
+                placeholder={t.login.confirmpassword}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                style={{marginBottom:"40px"}}
+                style={{ marginBottom: "40px" }}
               />
             </Form.Group>
 
