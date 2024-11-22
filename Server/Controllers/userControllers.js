@@ -87,36 +87,40 @@ const registerUser = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
         let avatarUrl = null;
         if (req.file) {
-          avatarUrl = await uploadToCloudinary(req.file); // Upload lên Cloudinary
+            avatarUrl = await uploadToCloudinary(req.file); // Upload lên Cloudinary
         }
+
+        // Thêm role admin nếu chưa có role nào được chỉ định
+        const userRole = role || 'admin'; 
+
         // Tạo người dùng mới
         user = new userModel({ 
             name, 
             email, 
             password: hashedPassword, 
-            role, 
+            role: userRole, // Sử dụng role đã được xác định
             friends, 
             groups,
-            avatar: avatarUrl // Lưu đường dẫn Cloudinary vào database
-          });
-      
-          await user.save();
-          const token = createToken(user._id);
-      
-          res.status(200).json({ 
+            avatar: avatarUrl 
+        });
+
+        await user.save();
+        const token = createToken(user._id);
+
+        res.status(200).json({ 
             _id: user._id, 
             name, 
             email, 
-            role, 
+            role: userRole, // Trả về role
             token, 
             avatar: avatarUrl 
-          });
-      
-        } catch (error) {
-          console.error('Lỗi đăng ký:', error); 
-          res.status(500).json("Lỗi server");
-        }
-      };
+        });
+
+    } catch (error) {
+        console.error('Lỗi đăng ký:', error); 
+        res.status(500).json("Lỗi server");
+    }
+};
 const loginUser = async (req, res) => {
     const { email, password } = req.body;
 

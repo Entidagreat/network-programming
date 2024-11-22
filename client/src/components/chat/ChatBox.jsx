@@ -252,11 +252,11 @@ const ChatBox = () => {
    {/* Hiển thị file */}
   {message?.file && (
                 <div>
-                  {message.file.mimetype.startsWith('image/') ? (
-                    <img 
-                      src={message.file.url} 
-                      alt={message.file.filename} 
-                      style={{ maxWidth: '100px', maxHeight: '50px' }} 
+                 {message.file.mimetype.startsWith('image/') ? (
+                    <img
+                      src={message.file.url}
+                      alt={message.file.filename}
+                      style={{ maxWidth: '100px', maxHeight: '50px' }}
                     />
                   ) : message.file.mimetype.startsWith('video/') ? (
                     <video 

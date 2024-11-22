@@ -146,17 +146,20 @@ export const ChatContextProvider = ({ children, user }) => {
 
     const handleNewFile = (res) => {
       if (currentChat?._id !== res.chatId) return;
-      setMessages((prev) => {
-        const index = prev.findIndex((m) => m._id === res._id);
-        if (index === -1) {
-          return [...prev, res];
-        } else {
-          const updatedMessages = [...prev];
-          updatedMessages[index] = res;
-          return updatedMessages;
-        }
+      setMessages(prev => {
+          // Tìm vị trí của tin nhắn file trong mảng messages
+          const index = prev.findIndex(m => m._id === res._id);
+          if (index === -1) {
+              // Nếu không tìm thấy, thêm tin nhắn mới vào đầu mảng
+              return [res, ...prev];
+          } else {
+              // Nếu tìm thấy, cập nhật tin nhắn file
+              const updatedMessages = [...prev];
+              updatedMessages[index] = res;
+              return updatedMessages;
+          }
       });
-    };
+  };
 
     socket.on("getMessage", handleNewMessage);
     socket.on("getGroupMessage", handleNewGroupMessage);

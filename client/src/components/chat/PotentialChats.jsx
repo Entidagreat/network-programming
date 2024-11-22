@@ -160,26 +160,27 @@ const PotentialChats = ({ setRefresh }) => {
   return (
     <div className="potential-chats">
       {Array.isArray(uniqueGroups) && uniqueGroups.map((group) => (
-        <div
-          key={group._id}
-          className="user-card align-items-center p-2 justify-content-between hstack gap-3"
-          onClick={() => handleGroupClick(group)}
-        >
-<div className="user-info d-flex align-items-center gap-3">
-    <div className="d-flex flex-column">
-        <span className="group-name fw-bold">{group.name}</span>
-        <div className="text">
-            {latestGroupMessage?.text && (
-              <span>{truncateText(latestMessage?.text)}</span>
-            )}
-          </div>
-          
-    </div>
-</div>
-          {onlineUsers?.some((user) => group.members.some(m => m.user._id === user.userId)) && (
-            <span className="online-dot"></span>
-          )}
-        </div>
+       <div
+       key={group._id}
+       className="user-card align-items-center p-2 justify-content-between hstack gap-3"
+       onClick={() => handleGroupClick(group)}
+     >
+       <div className="user-info d-flex align-items-center gap-3">
+         <div className="d-flex flex-column">
+           <span className="group-name fw-bold">{group.name}</span>
+           <div className="text">
+             {latestGroupMessage?.text && (
+               <span>{truncateText(latestGroupMessage.text)}</span>
+             )}
+           </div>
+         </div>
+       </div>
+       {onlineUsers?.some((user) =>
+         group.members.some((m) => m.user && m.user._id === user.userId)
+       ) && (
+         <span className="online-dot"></span>
+       )}
+     </div>
       ))}
     </div>
   );
