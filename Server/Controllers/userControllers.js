@@ -243,7 +243,36 @@ const updateUserAvatar = async (req, res) => {
       res.status(500).json({ message: 'Lỗi server' });
     }
   };
+  const changePassword = async (req, res) => {
+    try {
+        const userId = req.user._id; // Lấy ID người dùng từ middleware xác thực
+        const { oldPassword, newPassword } = req.body;
 
+        // Kiểm tra xem người dùng có tồn tại không
+        const user = await userModel.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+        }
+
+        // Kiểm tra mật khẩu cũ
+        const isMatch = await bcrypt.compare(oldPassword, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Mật khẩu cũ không đúng' });
+        }
+
+        // Mã hóa mật khẩu mới
+        const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+        // Cập nhật mật khẩu mới
+        user.password = hashedNewPassword;
+        await user.save();
+
+        res.status(200).json({ message: 'Đổi mật khẩu thành công' });
+    } catch (error) {
+        console.error('Lỗi khi đổi mật khẩu:', error);
+        res.status(500).json({ message: 'Lỗi server' });
+    }
+};
 
 
 module.exports = { 
@@ -255,5 +284,6 @@ module.exports = {
     searchUsersByName, 
     upload,
     uploadToCloudinary,
-    updateUserAvatar  // Export upload middleware
+    updateUserAvatar,
+    changePassword  // Export upload middleware
   };

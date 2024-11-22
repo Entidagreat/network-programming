@@ -184,7 +184,7 @@ const ChatBox = () => {
   }
 
   return (
-    <Stack gap={4} className="chat-box">
+       <Stack gap={4} className="chat-box" style={{marginTop : "21px"}}>
       <div className="chat-header">   
 
         {/* Hiển thị tên nhóm hoặc tên người nhận */}

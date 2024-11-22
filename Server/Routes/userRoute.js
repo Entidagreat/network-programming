@@ -7,7 +7,8 @@ const {
     deleteUser, 
     searchUsersByName, 
     uploadToCloudinary,
-    updateUserAvatar 
+    updateUserAvatar ,
+    changePassword
 } = require("../Controllers/userControllers");
 const authMiddleware = require('../authMiddleware');
 
@@ -27,6 +28,7 @@ router.get("/find/:userId", findUser);
 router.get("/", getUsers);
 router.delete("/:userId", deleteUser);
 router.get("/search", searchUsersByName); 
+router.put('/change-password', authMiddleware, changePassword);
 
 router.put('/update-avatar', authMiddleware, upload.single('avatar'), async (req, res) => {
   try {
