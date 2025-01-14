@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_KEY = 'AIzaSyAAD1KKYkz-uurI44PPZ6ene0jMBELdH44'; // Replace with your actual API key
+const API_KEY = ''; // Replace with your actual API key
 
 export const translateToKorean = async (text) => {
     return await translateText(text, 'ko');
