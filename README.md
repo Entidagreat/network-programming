@@ -118,9 +118,3 @@ Make sure the following ports are not in conflict:
 • Nguyễn Việt Dung  
 • Nguyễn Hoàng Gia Huy  
 • Phan Ngọc Thạch  
-
-From UTH - Vietnam
-
-## 📄 License
-
-This project is distributed under the MIT License. See `LICENSE` file for more details.
